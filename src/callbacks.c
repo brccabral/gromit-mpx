@@ -265,9 +265,9 @@ gboolean on_buttonpress(GtkWidget *win,
     // else if (ev->button <= 10)
     //     ev->state |= 1 << (ev->button + 15);
 
-    GromitState newState = {};
+    GromitState newState = devdata->state;
 
-    newState.buttons = (ev->button <= 10) ? 1 << (ev->button - 1) : 0;
+    newState.buttons |= (ev->button <= 10) ? 1 << (ev->button - 1) : 0;
     newState.modifiers = ev->state & 255;
 
     if (!compare_state(devdata->state, newState) ||
