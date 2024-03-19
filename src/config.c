@@ -43,7 +43,7 @@ static gpointer UNDOKEY_SYMBOL_VALUE = (gpointer)4;
  * Functions for parsing the Configuration-file
  */
 
-static gchar *parse_name(GScanner *scanner)
+static gboolean parse_name(GScanner *scanner, GromitLookupKey *key)
 {
     GTokenType token;
 
@@ -59,11 +59,11 @@ static gchar *parse_name(GScanner *scanner)
     {
         g_scanner_unexp_token(scanner, G_TOKEN_STRING, NULL,
                               NULL, NULL, "aborting", TRUE);
-        return NULL;
+        return 0;
     }
 
     len = strlen(scanner->value.v_string);
-    name = g_strndup(scanner->value.v_string, len + 4);
+    key->name = g_strndup(scanner->value.v_string, len);
 
     token = g_scanner_get_next_token(scanner);
 
@@ -105,14 +105,12 @@ static gchar *parse_name(GScanner *scanner)
         scanner->config->int_2_float = 1;
         token = g_scanner_get_next_token(scanner);
     }
+    
+    key->state.buttons = buttons;
+    key->state.extra_buttons = extra_buttons;
+    key->state.modifiers = modifier;
 
-    name[len] = 124;
-    name[len + 1] = extra_buttons + 48;
-    name[len + 2] = buttons + 48;
-    name[len + 3] = modifier + 48;
-    name[len + 4] = 0;
-
-    return name;
+    return 1;
 }
 
 gboolean parse_config(GromitData *data)
@@ -125,7 +123,8 @@ gboolean parse_config(GromitData *data)
     gchar *filename;
     int file;
 
-    gchar *name, *copy;
+    // gchar *name, *copy;
+    gboolean parsed;
 
     GromitPaintType type;
     GdkRGBA *fg_color = NULL;
@@ -217,10 +216,11 @@ gboolean parse_config(GromitData *data)
             /*
              * New tool definition
              */
+            GromitLookupKey keyName = {};
 
-            name = parse_name(scanner);
+            parsed = parse_name(scanner, &keyName);
 
-            if (!name)
+            if (!parsed)
                 goto cleanup;
 
             token = g_scanner_cur_token(scanner);
@@ -250,11 +250,12 @@ gboolean parse_config(GromitData *data)
             }
             else if (token == G_TOKEN_STRING)
             {
-                copy = parse_name(scanner);
-                if (!copy)
+                GromitLookupKey keyCopy = {};
+                parsed = parse_name(scanner, &keyCopy);
+                if (!parsed)
                     goto cleanup;
                 token = g_scanner_cur_token(scanner);
-                context_template = g_hash_table_lookup(data->tool_config, copy);
+                context_template = g_hash_table_lookup(data->tool_config, key2string(keyCopy));
                 if (context_template)
                 {
                     type = context_template->type;
@@ -269,7 +270,7 @@ gboolean parse_config(GromitData *data)
                 {
                     g_printerr("WARNING: Unable to copy \"%s\": "
                                "not yet defined!\n",
-                               copy);
+                               key2string(keyCopy));
                 }
             }
             else
@@ -442,7 +443,7 @@ gboolean parse_config(GromitData *data)
 
             context = paint_context_new(data, type, fg_color, width,
                                         arrowsize, arrowtype, minwidth, maxwidth);
-            g_hash_table_insert(data->tool_config, name, context);
+            g_hash_table_insert(data->tool_config, key2string(keyName), context);
         }
         else if (token == G_TOKEN_SYMBOL &&
                  (scanner->value.v_symbol == HOTKEY_SYMBOL_VALUE ||

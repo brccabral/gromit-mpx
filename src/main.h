@@ -96,6 +96,11 @@ typedef struct {
     guint modifiers;
 } GromitState;
 
+typedef struct {
+    GromitState state;
+    gchar *name;
+} GromitLookupKey;
+
 typedef struct
 {
     gdouble lastx;
@@ -191,5 +196,6 @@ void paint_context_free(GromitPaintContext *context);
 void indicate_active(GromitData *data, gboolean YESNO);
 
 gboolean compare_state(GromitState lhs, GromitState rhs);
+gchar *key2string(GromitLookupKey key);
 
 #endif
