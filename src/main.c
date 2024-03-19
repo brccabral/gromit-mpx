@@ -248,8 +248,8 @@ void select_tool(GromitData *data,
                  GdkDevice *slave_device,
                  guint state)
 {
-    guint buttons = 0, modifier = 0, slave_len = 0, len = 0, default_len = 0;
-    guint req_buttons = 0, req_modifier = 0;
+    guint buttons = 0, extra_buttons = 0, modifier = 0, slave_len = 0, len = 0, default_len = 0;
+    guint req_buttons = 0, req_extra_buttons = 0, req_modifier = 0;
     guint i, j, success = 0;
     GromitPaintContext *context = NULL;
     guchar *slave_name;
@@ -262,25 +262,30 @@ void select_tool(GromitData *data,
     if (device)
     {
         slave_len = strlen(gdk_device_get_name(slave_device));
-        slave_name = (guchar *)g_strndup(gdk_device_get_name(slave_device), slave_len + 3);
+        slave_name = (guchar *)g_strndup(gdk_device_get_name(slave_device), slave_len + 4);
         len = strlen(gdk_device_get_name(device));
-        name = (guchar *)g_strndup(gdk_device_get_name(device), len + 3);
+        name = (guchar *)g_strndup(gdk_device_get_name(device), len + 4);
         default_len = strlen(DEFAULT_DEVICE_NAME);
-        default_name = (guchar *)g_strndup(DEFAULT_DEVICE_NAME, default_len + 3);
+        default_name = (guchar *)g_strndup(DEFAULT_DEVICE_NAME, default_len + 4);
+
+        // g_printerr("DEBUG state %u\n", state);
+        req_extra_buttons = (state >> 21) & 31;
+        // g_printerr("DEBUG req_extra_buttons %u\n", req_extra_buttons);
 
         /* Extract Button/Modifiers from state (see GdkModifierType) */
         req_buttons = (state >> 8) & 31;
+        // g_printerr("DEBUG req_buttons %u\n", req_buttons);
 
         req_modifier = (state >> 1) & 7;
         if (state & GDK_SHIFT_MASK)
             req_modifier |= 1;
 
         slave_name[slave_len] = 124;
-        slave_name[slave_len + 3] = 0;
+        slave_name[slave_len + 4] = 0;
         name[len] = 124;
-        name[len + 3] = 0;
+        name[len + 4] = 0;
         default_name[default_len] = 124;
-        default_name[default_len + 3] = 0;
+        default_name[default_len + 4] = 0;
 
         /*
       Iterate i up until <= req_buttons.
@@ -301,20 +306,28 @@ void select_tool(GromitData *data,
               The condition i==0 handles the config cases where no button is given.
             */
             buttons = i & req_buttons;
-            if (i > 0 && (buttons == 0 || buttons != i))
+            extra_buttons = i & req_extra_buttons;
+            g_printerr("DEBUG i | buttons req_buttons | extra_buttons req_extra_buttons %u | %u %u | %u %u\n", i, buttons, req_buttons, extra_buttons, req_extra_buttons);
+            if (i > 0 && (buttons == 0 || buttons != i) && (extra_buttons == 0 || extra_buttons != i))
                 continue;
+            g_printerr("DEBUG i buttons extra_buttons %u %u %u\n", i, buttons, extra_buttons);
 
             j = -1;
             do
             {
                 j++;
                 modifier = req_modifier & ((1 << j) - 1);
-                slave_name[slave_len + 1] = buttons + 64;
-                slave_name[slave_len + 2] = modifier + 48;
-                name[len + 1] = buttons + 64;
-                name[len + 2] = modifier + 48;
-                default_name[default_len + 1] = buttons + 64;
-                default_name[default_len + 2] = modifier + 48;
+                slave_name[slave_len + 1] = extra_buttons + 64;
+                slave_name[slave_len + 2] = buttons + 64;
+                slave_name[slave_len + 3] = modifier + 48;
+                name[len + 1] = extra_buttons + 64;
+                name[len + 2] = buttons + 64;
+                name[len + 3] = modifier + 48;
+                default_name[default_len + 1] = extra_buttons + 64;
+                default_name[default_len + 2] = buttons + 64;
+                default_name[default_len + 3] = modifier + 48;
+
+                g_printerr("DEBUG: slave_name || name || default_name %s || %s || %s\n", slave_name, name, default_name);
 
                 if (data->debug)
                     g_printerr("DEBUG: select_tool looking up context for '%s' attached to '%s'\n", slave_name, name);
@@ -345,7 +358,7 @@ void select_tool(GromitData *data,
                         }
 
             } while (j <= 3 && req_modifier >= (1u << j));
-        } while (i < req_buttons);
+        } while (i < req_buttons || i < req_extra_buttons);
 
         if (!success)
         {

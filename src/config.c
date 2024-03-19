@@ -48,6 +48,7 @@ static gchar *parse_name(GScanner *scanner)
     GTokenType token;
 
     guint buttons = 0;
+    guint extra_buttons = 0;
     guint modifier = 0;
     guint len = 0;
     gchar *name;
@@ -62,7 +63,7 @@ static gchar *parse_name(GScanner *scanner)
     }
 
     len = strlen(scanner->value.v_string);
-    name = g_strndup(scanner->value.v_string, len + 3);
+    name = g_strndup(scanner->value.v_string, len + 4);
 
     token = g_scanner_get_next_token(scanner);
 
@@ -88,8 +89,10 @@ static gchar *parse_name(GScanner *scanner)
             {
                 if (scanner->value.v_int <= 5 && scanner->value.v_int > 0)
                     buttons |= 1 << (scanner->value.v_int - 1);
+                else if (scanner->value.v_int <= 10 && scanner->value.v_int > 0)
+                    extra_buttons |= 1 << (scanner->value.v_int - 6);
                 else
-                    g_printerr("Only Buttons 1-5 are supported!\n");
+                    g_printerr("Only Buttons 1-10 are supported!\n");
             }
             else
             {
@@ -102,9 +105,10 @@ static gchar *parse_name(GScanner *scanner)
     }
 
     name[len] = 124;
-    name[len + 1] = buttons + 64;
-    name[len + 2] = modifier + 48;
-    name[len + 3] = 0;
+    name[len + 1] = extra_buttons + 64;
+    name[len + 2] = buttons + 64;
+    name[len + 3] = modifier + 48;
+    name[len + 4] = 0;
 
     return name;
 }
@@ -181,6 +185,11 @@ gboolean parse_config(GromitData *data)
     g_scanner_scope_add_symbol(scanner, 1, "BUTTON3", (gpointer)3);
     g_scanner_scope_add_symbol(scanner, 1, "BUTTON4", (gpointer)4);
     g_scanner_scope_add_symbol(scanner, 1, "BUTTON5", (gpointer)5);
+    g_scanner_scope_add_symbol(scanner, 1, "BUTTON6", (gpointer)6);
+    g_scanner_scope_add_symbol(scanner, 1, "BUTTON7", (gpointer)7);
+    g_scanner_scope_add_symbol(scanner, 1, "BUTTON8", (gpointer)8);
+    g_scanner_scope_add_symbol(scanner, 1, "BUTTON9", (gpointer)9);
+    g_scanner_scope_add_symbol(scanner, 1, "BUTTON10", (gpointer)10);
     g_scanner_scope_add_symbol(scanner, 1, "SHIFT", (gpointer)11);
     g_scanner_scope_add_symbol(scanner, 1, "CONTROL", (gpointer)12);
     g_scanner_scope_add_symbol(scanner, 1, "META", (gpointer)13);

@@ -159,7 +159,15 @@ typedef struct
 
 } GromitData;
 
-void toggle_visibility(GromitData *data);
+typedef struct {
+    guint extra_buttons;
+    guint buttons;
+    guint modifier;
+    guchar name;
+} GromitState;
+
+void
+toggle_visibility(GromitData *data);
 void hide_window(GromitData *data);
 void show_window(GromitData *data);
 

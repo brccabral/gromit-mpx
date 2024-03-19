@@ -230,6 +230,12 @@ gboolean on_buttonpress(GtkWidget *win,
 {
     GromitData *data = (GromitData *)user_data;
     gdouble pressure = 1;
+    guint button = 0;
+
+    if (!gdk_event_get_button(ev, &button))
+        g_printerr("ERROR button is %u\n", button);
+    else
+        g_print("INFO button is %u\n", button);
 
     /* get the data for this device */
     GromitDeviceData *devdata = g_hash_table_lookup(data->devdatatable, ev->device);
@@ -254,7 +260,10 @@ gboolean on_buttonpress(GtkWidget *win,
     }
 
     /* See GdkModifierType. Am I fixing a Gtk misbehaviour???  */
-    ev->state |= 1 << (ev->button + 7);
+    if (ev->button <= 5)
+        ev->state |= 1 << (ev->button + 7);
+    else if (ev->button <= 10)
+        ev->state |= 1 << (ev->button + 15);
 
     if (ev->state != devdata->state ||
         devdata->lastslave != gdk_event_get_source_device((GdkEvent *)ev))
@@ -283,7 +292,7 @@ gboolean on_buttonpress(GtkWidget *win,
     if (data->maxwidth > devdata->cur_context->maxwidth)
         data->maxwidth = devdata->cur_context->maxwidth;
 
-    if (ev->button <= 5)
+    if (ev->button <= 10)
         draw_line(data, ev->device, ev->x, ev->y, ev->x, ev->y);
 
     coord_list_prepend(data, ev->device, ev->x, ev->y, data->maxwidth);
