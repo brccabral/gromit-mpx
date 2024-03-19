@@ -48,7 +48,6 @@ static gboolean parse_name(GScanner *scanner, GromitLookupKey *key)
     GTokenType token;
 
     guint buttons = 0;
-    guint extra_buttons = 0;
     guint modifier = 0;
     guint len = 0;
     gchar *name;
@@ -64,6 +63,7 @@ static gboolean parse_name(GScanner *scanner, GromitLookupKey *key)
 
     len = strlen(scanner->value.v_string);
     key->name = g_strndup(scanner->value.v_string, len);
+    g_printerr("DEBUG: key->name %s\n", key->name);
 
     token = g_scanner_get_next_token(scanner);
 
@@ -80,19 +80,15 @@ static gboolean parse_name(GScanner *scanner, GromitLookupKey *key)
         {
             if (token == G_TOKEN_SYMBOL)
             {
-                if ((intptr_t)scanner->value.v_symbol <= 5)
+                if ((intptr_t)scanner->value.v_symbol <= 10)
                     buttons |= 1 << ((intptr_t)scanner->value.v_symbol - 1);
-                else if ((intptr_t)scanner->value.v_symbol <= 10)
-                    extra_buttons |= 1 << ((intptr_t)scanner->value.v_symbol - 6);
                 else
                     modifier |= 1 << ((intptr_t)scanner->value.v_symbol - 11);
             }
             else if (token == G_TOKEN_INT)
             {
-                if (scanner->value.v_int <= 5 && scanner->value.v_int > 0)
+                if (scanner->value.v_int <= 10 && scanner->value.v_int > 0)
                     buttons |= 1 << (scanner->value.v_int - 1);
-                else if (scanner->value.v_int <= 10 && scanner->value.v_int > 0)
-                    extra_buttons |= 1 << (scanner->value.v_int - 6);
                 else
                     g_printerr("Only Buttons 1-10 are supported!\n");
             }
@@ -107,8 +103,9 @@ static gboolean parse_name(GScanner *scanner, GromitLookupKey *key)
     }
     
     key->state.buttons = buttons;
-    key->state.extra_buttons = extra_buttons;
     key->state.modifiers = modifier;
+
+    g_printerr("DEBUG: key %s\n", key2string(*key));
 
     return 1;
 }

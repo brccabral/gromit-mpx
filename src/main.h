@@ -37,7 +37,8 @@
 
 #define GROMIT_MOUSE_EVENTS (GDK_BUTTON_MOTION_MASK | \
                              GDK_BUTTON_PRESS_MASK |  \
-                             GDK_BUTTON_RELEASE_MASK)
+                             GDK_BUTTON_RELEASE_MASK | \
+                             GDK_POINTER_MOTION_MASK)
 
 #define GROMIT_WINDOW_EVENTS (GROMIT_MOUSE_EVENTS | GDK_EXPOSURE_MASK)
 
@@ -91,7 +92,6 @@ typedef struct
 } GromitPaintContext;
 
 typedef struct {
-    guint extra_buttons;
     guint buttons;
     guint modifiers;
 } GromitState;

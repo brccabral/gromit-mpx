@@ -248,8 +248,8 @@ void select_tool(GromitData *data,
                  GdkDevice *slave_device,
                  GromitState state)
 {
-    guint buttons = 0, extra_buttons = 0, modifier = 0, slave_len = 0, len = 0, default_len = 0;
-    guint req_buttons = 0, req_extra_buttons = 0, req_modifier = 0;
+    guint buttons = 0, modifier = 0, slave_len = 0, len = 0, default_len = 0;
+    guint req_buttons = 0, req_modifier = 0;
     guint i, j, success = 0;
     GromitPaintContext *context = NULL;
     // guchar *slave_name;
@@ -271,7 +271,6 @@ void select_tool(GromitData *data,
 
         req_buttons = state.buttons;
         req_modifier = state.modifiers;
-        req_extra_buttons = state.extra_buttons;
 
         /*
       Iterate i up until <= req_buttons.
@@ -292,28 +291,24 @@ void select_tool(GromitData *data,
               The condition i==0 handles the config cases where no button is given.
             */
             buttons = i & req_buttons;
-            extra_buttons = i & req_extra_buttons;
-            g_printerr("DEBUG i | buttons req_buttons | extra_buttons req_extra_buttons %u | %u %u | %u %u\n", i, buttons, req_buttons, extra_buttons, req_extra_buttons);
-            if (i > 0 && (buttons == 0 || buttons != i) && (extra_buttons == 0 || extra_buttons != i))
+            g_printerr("DEBUG i | buttons req_buttons %u | %u %u\n", i, buttons, req_buttons);
+            if (i > 0 && (buttons == 0 || buttons != i))
                 continue;
-            g_printerr("DEBUG i buttons extra_buttons %u %u %u\n", i, buttons, extra_buttons);
+            g_printerr("DEBUG i buttons %u %u\n", i, buttons);
 
             j = -1;
             do
             {
                 j++;
                 modifier = req_modifier & ((1 << j) - 1);
-                
+
                 keySlave.state.buttons = buttons;
-                keySlave.state.extra_buttons = extra_buttons;
                 keySlave.state.modifiers = modifier;
-                
+
                 keyName.state.buttons = buttons;
-                keyName.state.extra_buttons = extra_buttons;
                 keyName.state.modifiers = modifier;
-                
+
                 keyDefault.state.buttons = buttons;
-                keyDefault.state.extra_buttons = extra_buttons;
                 keyDefault.state.modifiers = modifier;
 
                 g_printerr("DEBUG: slave_name || name || default_name %s || %s || %s\n", key2string(keySlave), key2string(keyName), key2string(keyDefault));
@@ -347,7 +342,7 @@ void select_tool(GromitData *data,
                         }
 
             } while (j <= 3 && req_modifier >= (1u << j));
-        } while (i < req_buttons || i < req_extra_buttons);
+        } while (i < req_buttons);
 
         if (!success)
         {
@@ -359,7 +354,6 @@ void select_tool(GromitData *data,
             if (data->debug)
                 g_printerr("DEBUG: select_tool set fallback context for '%s'\n", key2string(keyName));
         }
-
     }
     else
         g_printerr("ERROR: select_tool attempted to select nonexistent device!\n");
@@ -1145,11 +1139,11 @@ void indicate_active(GromitData *data, gboolean YESNO)
 gboolean compare_state(GromitState lhs, GromitState rhs)
 {
     return lhs.buttons == rhs.buttons &&
-           lhs.extra_buttons == rhs.extra_buttons &&
            lhs.modifiers == rhs.modifiers;
 }
 
-gchar *key2string(GromitLookupKey key){
+gchar *key2string(GromitLookupKey key)
+{
 
     guint len = 0;
     gchar *result;
@@ -1158,8 +1152,11 @@ gchar *key2string(GromitLookupKey key){
     result = g_strndup(key.name, len + 4);
 
     result[len] = 124;
-    result[len + 1] = key.state.extra_buttons + 48;
-    result[len + 2] = key.state.buttons + 48;
+    guint buttons = key.state.buttons;
+    gchar buttons_high = key.state.buttons >> 8 & 255;
+    gchar buttons_low = key.state.buttons & 255;
+    result[len + 1] = buttons_high + 48;
+    result[len + 2] = buttons_low + 48;
     result[len + 3] = key.state.modifiers + 48;
     result[len + 4] = 0;
 

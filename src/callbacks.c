@@ -267,8 +267,7 @@ gboolean on_buttonpress(GtkWidget *win,
 
     GromitState newState = {};
 
-    newState.buttons = (ev->button <= 5) ? 1 << (ev->button - 1) : 0;
-    newState.extra_buttons = (ev->button > 5 && ev->button <= 10) ? 1 << (ev->button - 6) : 0;
+    newState.buttons = (ev->button <= 10) ? 1 << (ev->button - 1) : 0;
     newState.modifiers = ev->state & 255;
 
     if (!compare_state(devdata->state, newState) ||
@@ -327,6 +326,20 @@ gboolean on_motion(GtkWidget *win,
     // if (ev->state != devdata->state ||
     //     devdata->lastslave != gdk_event_get_source_device((GdkEvent *)ev))
     //     select_tool(data, ev->device, gdk_event_get_source_device((GdkEvent *)ev));
+
+    guint prev_buttons = devdata->state.buttons;
+    guint prev_extra = prev_buttons & 992;
+
+    GromitState newState = {};
+    newState.buttons = (ev->state >> 8) & 1023;
+    newState.buttons |= prev_extra;
+    newState.modifiers = ev->state & 255;
+    if (!newState.buttons)
+        return TRUE;
+
+    if (!compare_state(devdata->state, newState) ||
+        devdata->lastslave != gdk_event_get_source_device((GdkEvent *)ev))
+        select_tool(data, ev->device, gdk_event_get_source_device((GdkEvent *)ev), newState);
 
     GromitPaintType type = devdata->cur_context->type;
 
@@ -449,6 +462,9 @@ gboolean on_buttonrelease(GtkWidget *win,
     if ((ev->x != devdata->lastx) ||
         (ev->y != devdata->lasty))
         on_motion(win, (GdkEventMotion *)ev, user_data);
+
+    guint button = 1 << (ev->button - 1);
+    devdata->state.buttons &= ~button;
 
     if (!devdata->is_grabbed)
         return FALSE;
