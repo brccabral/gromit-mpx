@@ -265,8 +265,8 @@ gboolean on_buttonpress(GtkWidget *win,
     // else if (ev->button <= 10)
     //     ev->state |= 1 << (ev->button + 15);
 
+    // add new buttons to GromitState
     GromitState newState = devdata->state;
-
     newState.buttons |= (ev->button <= 10) ? 1 << (ev->button - 1) : 0;
     newState.modifiers = ev->state & 255;
 
@@ -327,13 +327,13 @@ gboolean on_motion(GtkWidget *win,
     //     devdata->lastslave != gdk_event_get_source_device((GdkEvent *)ev))
     //     select_tool(data, ev->device, gdk_event_get_source_device((GdkEvent *)ev));
 
-    guint prev_buttons = devdata->state.buttons;
-    guint prev_extra = prev_buttons & 992;
-
-    GromitState newState = {};
-    newState.buttons = (ev->state >> 8) & 1023;
-    newState.buttons |= prev_extra;
+    // GdkEventMotion->state has only buttons 1-5, keep 6-10
+    GromitState newState = devdata->state;
+    newState.buttons &= 992; // keep 6-10
+    newState.buttons |= (ev->state >> 8) & 1023; // update 1-5
     newState.modifiers = ev->state & 255;
+
+    // return if there is no button pressed
     if (!newState.buttons)
         return TRUE;
 
@@ -463,8 +463,10 @@ gboolean on_buttonrelease(GtkWidget *win,
         (ev->y != devdata->lasty))
         on_motion(win, (GdkEventMotion *)ev, user_data);
 
+    // remove released button bit from GromitState
     guint button = 1 << (ev->button - 1);
     devdata->state.buttons &= ~button;
+    devdata->state.modifiers = ev->state & 255;
 
     if (!devdata->is_grabbed)
         return FALSE;
