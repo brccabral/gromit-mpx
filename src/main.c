@@ -246,7 +246,7 @@ gint reshape(gpointer user_data)
 void select_tool(GromitData *data,
                  GdkDevice *device,
                  GdkDevice *slave_device,
-                 guint state)
+                 GromitState state)
 {
     guint buttons = 0, extra_buttons = 0, modifier = 0, slave_len = 0, len = 0, default_len = 0;
     guint req_buttons = 0, req_extra_buttons = 0, req_modifier = 0;
@@ -268,17 +268,9 @@ void select_tool(GromitData *data,
         default_len = strlen(DEFAULT_DEVICE_NAME);
         default_name = (guchar *)g_strndup(DEFAULT_DEVICE_NAME, default_len + 4);
 
-        // g_printerr("DEBUG state %u\n", state);
-        req_extra_buttons = (state >> 21) & 31;
-        // g_printerr("DEBUG req_extra_buttons %u\n", req_extra_buttons);
-
-        /* Extract Button/Modifiers from state (see GdkModifierType) */
-        req_buttons = (state >> 8) & 31;
-        // g_printerr("DEBUG req_buttons %u\n", req_buttons);
-
-        req_modifier = (state >> 1) & 7;
-        if (state & GDK_SHIFT_MASK)
-            req_modifier |= 1;
+        req_buttons = state.buttons;
+        req_modifier = state.modifiers;
+        req_extra_buttons = state.extra_buttons;
 
         slave_name[slave_len] = 124;
         slave_name[slave_len + 4] = 0;
@@ -317,14 +309,14 @@ void select_tool(GromitData *data,
             {
                 j++;
                 modifier = req_modifier & ((1 << j) - 1);
-                slave_name[slave_len + 1] = extra_buttons + 64;
-                slave_name[slave_len + 2] = buttons + 64;
+                slave_name[slave_len + 1] = extra_buttons + 48;
+                slave_name[slave_len + 2] = buttons + 48;
                 slave_name[slave_len + 3] = modifier + 48;
-                name[len + 1] = extra_buttons + 64;
-                name[len + 2] = buttons + 64;
+                name[len + 1] = extra_buttons + 48;
+                name[len + 2] = buttons + 48;
                 name[len + 3] = modifier + 48;
-                default_name[default_len + 1] = extra_buttons + 64;
-                default_name[default_len + 2] = buttons + 64;
+                default_name[default_len + 1] = extra_buttons + 48;
+                default_name[default_len + 2] = buttons + 48;
                 default_name[default_len + 3] = modifier + 48;
 
                 g_printerr("DEBUG: slave_name || name || default_name %s || %s || %s\n", slave_name, name, default_name);
@@ -1153,4 +1145,11 @@ void indicate_active(GromitData *data, gboolean YESNO)
         app_indicator_set_icon(data->trayicon, "net.christianbeier.Gromit-MPX.active");
     else
         app_indicator_set_icon(data->trayicon, "net.christianbeier.Gromit-MPX");
+}
+
+gboolean compare_state(GromitState lhs, GromitState rhs)
+{
+    return lhs.buttons == rhs.buttons &&
+           lhs.extra_buttons == rhs.extra_buttons &&
+           lhs.modifiers == rhs.modifiers;
 }

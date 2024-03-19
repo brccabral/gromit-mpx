@@ -80,8 +80,10 @@ static gchar *parse_name(GScanner *scanner)
         {
             if (token == G_TOKEN_SYMBOL)
             {
-                if ((intptr_t)scanner->value.v_symbol < 11)
+                if ((intptr_t)scanner->value.v_symbol <= 5)
                     buttons |= 1 << ((intptr_t)scanner->value.v_symbol - 1);
+                else if ((intptr_t)scanner->value.v_symbol <= 10)
+                    extra_buttons |= 1 << ((intptr_t)scanner->value.v_symbol - 6);
                 else
                     modifier |= 1 << ((intptr_t)scanner->value.v_symbol - 11);
             }
@@ -105,8 +107,8 @@ static gchar *parse_name(GScanner *scanner)
     }
 
     name[len] = 124;
-    name[len + 1] = extra_buttons + 64;
-    name[len + 2] = buttons + 64;
+    name[len + 1] = extra_buttons + 48;
+    name[len + 2] = buttons + 48;
     name[len + 3] = modifier + 48;
     name[len + 4] = 0;
 
@@ -191,9 +193,9 @@ gboolean parse_config(GromitData *data)
     g_scanner_scope_add_symbol(scanner, 1, "BUTTON9", (gpointer)9);
     g_scanner_scope_add_symbol(scanner, 1, "BUTTON10", (gpointer)10);
     g_scanner_scope_add_symbol(scanner, 1, "SHIFT", (gpointer)11);
-    g_scanner_scope_add_symbol(scanner, 1, "CONTROL", (gpointer)12);
-    g_scanner_scope_add_symbol(scanner, 1, "META", (gpointer)13);
-    g_scanner_scope_add_symbol(scanner, 1, "ALT", (gpointer)13);
+    g_scanner_scope_add_symbol(scanner, 1, "CONTROL", (gpointer)13);
+    g_scanner_scope_add_symbol(scanner, 1, "META", (gpointer)14);
+    g_scanner_scope_add_symbol(scanner, 1, "ALT", (gpointer)14);
 
     g_scanner_scope_add_symbol(scanner, 2, "size", (gpointer)1);
     g_scanner_scope_add_symbol(scanner, 2, "color", (gpointer)2);

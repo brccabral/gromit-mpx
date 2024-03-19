@@ -260,14 +260,20 @@ gboolean on_buttonpress(GtkWidget *win,
     }
 
     /* See GdkModifierType. Am I fixing a Gtk misbehaviour???  */
-    if (ev->button <= 5)
-        ev->state |= 1 << (ev->button + 7);
-    else if (ev->button <= 10)
-        ev->state |= 1 << (ev->button + 15);
+    // if (ev->button <= 5)
+    //     ev->state |= 1 << (ev->button + 7);
+    // else if (ev->button <= 10)
+    //     ev->state |= 1 << (ev->button + 15);
 
-    if (ev->state != devdata->state ||
+    GromitState newState = {};
+
+    newState.buttons = (ev->button <= 5) ? 1 << (ev->button - 1) : 0;
+    newState.extra_buttons = (ev->button > 5 && ev->button <= 10) ? 1 << (ev->button - 6) : 0;
+    newState.modifiers = ev->state & 255;
+
+    if (!compare_state(devdata->state, newState) ||
         devdata->lastslave != gdk_event_get_source_device((GdkEvent *)ev))
-        select_tool(data, ev->device, gdk_event_get_source_device((GdkEvent *)ev), ev->state);
+        select_tool(data, ev->device, gdk_event_get_source_device((GdkEvent *)ev), newState);
 
     GromitPaintType type = devdata->cur_context->type;
 
@@ -318,9 +324,9 @@ gboolean on_motion(GtkWidget *win,
     if (data->debug)
         g_printerr("DEBUG: Device '%s': motion to (x,y)=(%.2f : %.2f)\n", gdk_device_get_name(ev->device), ev->x, ev->y);
 
-    if (ev->state != devdata->state ||
-        devdata->lastslave != gdk_event_get_source_device((GdkEvent *)ev))
-        select_tool(data, ev->device, gdk_event_get_source_device((GdkEvent *)ev), ev->state);
+    // if (ev->state != devdata->state ||
+    //     devdata->lastslave != gdk_event_get_source_device((GdkEvent *)ev))
+    //     select_tool(data, ev->device, gdk_event_get_source_device((GdkEvent *)ev));
 
     GromitPaintType type = devdata->cur_context->type;
 
