@@ -339,7 +339,7 @@ void setup_input_devices(GromitData *data)
           if (data->debug)
             g_printerr("DEBUG: Grabbing key '%s' from keyboard '%d' .\n", keyval, kbd_dev_id);
 
-          int err = grab_keycode(data->display, kbd_dev_id, keysym, 0, data->root);
+          int err = grab_keycode(data->display, kbd_dev_id, keysym, XIAnyKeycode, data->root);
           if (err != 0)
           {
             g_printerr("ERROR: %d Grabbing key '%s' from keyboard device %d failed.\n", err, keyval, kbd_dev_id);
@@ -719,8 +719,6 @@ guint grab_keycode(GdkDisplay *display, gint device_id, unsigned int keysym, uns
   hotkey.m_keycode = XKeysymToKeycode(GDK_DISPLAY_XDISPLAY(display), keysym);
   hotkey.m_modifiers = keymodifiers;
 
-  unsigned int masks[] = {0, LockMask, Mod2Mask, LockMask | Mod2Mask};
-
   // choose the events that we want to listen to
   unsigned char mask[(XI_LASTEVENT + 7) / 8] = {0};
   XISetMask(mask, XI_KeyPress);
@@ -733,7 +731,8 @@ guint grab_keycode(GdkDisplay *display, gint device_id, unsigned int keysym, uns
   evmask.mask = mask;
 
   // create grab modifiers
-  XIGrabModifiers modifiers[4];
+  unsigned int masks[] = {0};
+  XIGrabModifiers modifiers[sizeof(masks) / sizeof(masks[0])];
   for (unsigned int i = 0; i < sizeof(masks) / sizeof(masks[0]); ++i)
   {
     modifiers[i].modifiers = hotkey.m_modifiers | masks[i];
