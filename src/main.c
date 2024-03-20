@@ -1139,7 +1139,7 @@ gchar *key2string(GromitLookupKey key)
   gchar *result;
 
   len = strlen(key.name);
-  result = g_strndup(key.name, len + 4);
+  result = g_strndup(key.name, len + 8);
 
   result[len] = 124;
 
@@ -1148,10 +1148,26 @@ gchar *key2string(GromitLookupKey key)
   gchar buttons_low = key.state.buttons & 255;       // 1-8
   gchar buttons_high = key.state.buttons >> 8 & 255; // 9-10
 
+  // there are 26 keys, we need four bytes (four char) if we 
+  // want to allow all 26 keys pressed at the same time
+  // although the OS doesn't allow all keys pressed
+  gulong keys = key.state.keys & 134217727L; // limit to 26 bits
+  gchar keys1 = keys & 255;
+  keys = keys >> 8;
+  gchar keys2 = keys & 255;
+  keys = keys >> 8;
+  gchar keys3 = keys & 255;
+  keys = keys >> 8;
+  gchar keys4 = keys & 255;
+
   result[len + 1] = buttons_high + 48;
   result[len + 2] = buttons_low + 48;
   result[len + 3] = key.state.modifiers + 48;
-  result[len + 4] = 0;
+  result[len + 4] = keys1 + 48;
+  result[len + 5] = keys2 + 48;
+  result[len + 6] = keys3 + 48;
+  result[len + 7] = keys4 + 48;
+  result[len + 8] = 0;
 
   return result;
 }
