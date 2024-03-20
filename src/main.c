@@ -672,26 +672,11 @@ void setup_main_app(GromitData *data, int argc, char **argv)
   */
   if (data->undo_keyval)
   {
-    GdkKeymap *keymap;
-    GdkKeymapKey *keys;
-    gint n_keys;
-    guint keyval;
-
-    if (strlen(data->undo_keyval) > 0 &&
-        strcasecmp(data->undo_keyval, "none") != 0)
+    data->undo_keycode = find_keycode(data->display, data->undo_keyval);
+    if(!data->undo_keycode)
     {
-      keymap = gdk_keymap_get_for_display(data->display);
-      keyval = gdk_keyval_from_name(data->undo_keyval);
-
-      if (!keyval || !gdk_keymap_get_entries_for_keyval(keymap, keyval,
-                                                        &keys, &n_keys))
-      {
         g_printerr("cannot find the key \"%s\"\n", data->undo_keyval);
         exit(1);
-      }
-
-      data->undo_keycode = keys[0].keycode;
-      g_free(keys);
     }
   }
 
