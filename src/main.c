@@ -594,6 +594,10 @@ void setup_main_app(GromitData *data, int argc, char **argv)
                    G_CALLBACK(on_buttonpress), data);
   g_signal_connect(data->win, "button_release_event",
                    G_CALLBACK(on_buttonrelease), data);
+  g_signal_connect(data->win, "key-press-event",
+                   G_CALLBACK(on_keypress), data);
+  g_signal_connect(data->win, "key-release-event",
+                   G_CALLBACK(on_keyrelease), data);
   /* disconnect previously defined selection handlers */
   g_signal_handlers_disconnect_by_func(data->win,
                                        G_CALLBACK(on_clientapp_selection_get),
@@ -655,26 +659,11 @@ void setup_main_app(GromitData *data, int argc, char **argv)
   */
   if (data->hot_keyval)
   {
-    GdkKeymap *keymap;
-    GdkKeymapKey *keys;
-    gint n_keys;
-    guint keyval;
-
-    if (strlen(data->hot_keyval) > 0 &&
-        strcasecmp(data->hot_keyval, "none") != 0)
+    data->hot_keycode = find_keycode(data->display, data->hot_keyval);
+    if(!data->hot_keycode)
     {
-      keymap = gdk_keymap_get_for_display(data->display);
-      keyval = gdk_keyval_from_name(data->hot_keyval);
-
-      if (!keyval || !gdk_keymap_get_entries_for_keyval(keymap, keyval,
-                                                        &keys, &n_keys))
-      {
         g_printerr("cannot find the key \"%s\"\n", data->hot_keyval);
         exit(1);
-      }
-
-      data->hot_keycode = keys[0].keycode;
-      g_free(keys);
     }
   }
 
@@ -1144,21 +1133,20 @@ gchar *key2string(GromitLookupKey key)
   result[len] = 124;
 
   // to identify buttons 1-10 we need two bytes (two char)
-  guint buttons = key.state.buttons;
-  gchar buttons_low = key.state.buttons & 255;       // 1-8
-  gchar buttons_high = key.state.buttons >> 8 & 255; // 9-10
+  gchar buttons_low = key.state.buttons & 0xFF;       // 1-8
+  gchar buttons_high = key.state.buttons >> 8 & 0xFF; // 9-10
 
-  // there are 26 keys, we need four bytes (four char) if we 
+  // there are 26 keys, we need four bytes (four char) if we
   // want to allow all 26 keys pressed at the same time
   // although the OS doesn't allow all keys pressed
-  gulong keys = key.state.keys & 134217727L; // limit to 26 bits
-  gchar keys1 = keys & 255;
+  gulong keys = key.state.keys & 0x7FFFFFF; // limit to 26 bits
+  gchar keys1 = keys & 0xFF;
   keys = keys >> 8;
-  gchar keys2 = keys & 255;
+  gchar keys2 = keys & 0xFF;
   keys = keys >> 8;
-  gchar keys3 = keys & 255;
+  gchar keys3 = keys & 0xFF;
   keys = keys >> 8;
-  gchar keys4 = keys & 255;
+  gchar keys4 = keys & 0xFF;
 
   result[len + 1] = buttons_high + 48;
   result[len + 2] = buttons_low + 48;
@@ -1169,5 +1157,31 @@ gchar *key2string(GromitLookupKey key)
   result[len + 7] = keys4 + 48;
   result[len + 8] = 0;
 
+  return result;
+}
+
+guint find_keycode(GdkDisplay *display, const gchar *keyval)
+{
+  GdkKeymap *keymap;
+  GdkKeymapKey *keys;
+  gint n_keys;
+  guint gdk_keyval, result = 0;
+
+  if (strlen(keyval) > 0 &&
+      strcasecmp(keyval, "none") != 0)
+  {
+    keymap = gdk_keymap_get_for_display(display);
+    gdk_keyval = gdk_keyval_from_name(keyval);
+
+    if (!gdk_keyval || !gdk_keymap_get_entries_for_keyval(keymap, gdk_keyval,
+                                                          &keys, &n_keys))
+    {
+      g_printerr("cannot find the key \"%s\"\n", keyval);
+      return 0;
+    }
+
+    result = keys[0].keycode;
+    g_free(keys);
+  }
   return result;
 }

@@ -248,6 +248,8 @@ void setup_input_devices(GromitData *data)
   int i = 0;
 
   devices = gdk_device_manager_list_devices(device_manager, GDK_DEVICE_TYPE_MASTER);
+  GromitDeviceData *devdata;
+  devdata = g_malloc0(sizeof(GromitDeviceData));
   for (d = devices; d; d = d->next)
   {
     GdkDevice *device = (GdkDevice *)d->data;
@@ -257,9 +259,6 @@ void setup_input_devices(GromitData *data)
     {
       gdk_device_set_mode(device, GDK_MODE_SCREEN);
 
-      GromitDeviceData *devdata;
-
-      devdata = g_malloc0(sizeof(GromitDeviceData));
       devdata->device = device;
       devdata->index = i;
 
@@ -323,6 +322,39 @@ void setup_input_devices(GromitData *data)
             }
           }
 
+#if 1
+          // HotKey hotkey = {};
+          // gchar *keyval = "a";
+          // hotkey.m_keycode = find_keycode(data->display, keyval);
+          // hotkey.m_modifiers = ShiftMask;
+          // if (!hotkey.m_keycode)
+          // {
+          //   g_printerr("cannot find the key \"%s\"\n", keyval);
+          //   exit(1);
+          // }
+
+          unsigned int keysym = XK_a;
+          gchar *keyval = XKeysymToString(keysym);
+
+          if (data->debug)
+            g_printerr("DEBUG: Grabbing key '%s' from keyboard '%d' .\n", keyval, kbd_dev_id);
+
+          int err = grab_keycode(data->display, kbd_dev_id, keysym, 0, data->root);
+          if (err != 0)
+          {
+            g_printerr("ERROR: %d Grabbing key '%s' from keyboard device %d failed.\n", err, keyval, kbd_dev_id);
+            GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW(data->win),
+                                                       GTK_DIALOG_DESTROY_WITH_PARENT,
+                                                       GTK_MESSAGE_ERROR,
+                                                       GTK_BUTTONS_CLOSE,
+                                                       "Grabbing key %s from keyboard %d failed. The drawing key function will not work unless configured to use another key. Error %d",
+                                                       keyval,
+                                                       kbd_dev_id,
+                                                       err);
+            gtk_dialog_run(GTK_DIALOG(dialog));
+            gtk_widget_destroy(dialog);
+          }
+#endif
           if (data->undo_keycode)
           {
             if (data->debug)
@@ -378,6 +410,11 @@ void setup_input_devices(GromitData *data)
       g_printerr("Enabled Device %d: \"%s\", (Type: %d)\n",
                  i++, gdk_device_get_name(device), gdk_device_get_source(device));
     }
+
+    // if (gdk_device_get_source(device) == GDK_SOURCE_KEYBOARD)
+    // {
+    //   devdata->keyboard = device;
+    // }
   }
 
   g_printerr("Now %d enabled devices.\n", g_hash_table_size(data->devdatatable));
@@ -423,6 +460,7 @@ void release_grab(GromitData *data,
       {
         gdk_x11_display_error_trap_push(data->display);
         gdk_device_ungrab(devdata->device, GDK_CURRENT_TIME);
+        // gdk_device_ungrab(devdata->keyboard, GDK_CURRENT_TIME);
         XSync(GDK_DISPLAY_XDISPLAY(data->display), False);
         if (gdk_x11_display_error_trap_pop(data->display))
           g_printerr("WARNING: Ungrabbing device '%s' failed.\n", gdk_device_get_name(devdata->device));
@@ -520,6 +558,21 @@ void acquire_grab(GromitData *data,
         continue;
       }
 
+      // if (gdk_device_grab(devdata->keyboard,
+      //                     gtk_widget_get_window(data->win),
+      //                     GDK_OWNERSHIP_NONE,
+      //                     TRUE,
+      //                     GROMIT_KEYBOARD_EVENTS,
+      //                     NULL,
+      //                     GDK_CURRENT_TIME) != GDK_GRAB_SUCCESS)
+      // {
+      //   /* this probably means the device table is outdated,
+      //  e.g. this device doesn't exist anymore */
+      //   g_printerr("Error grabbing Device '%s' while grabbing all, ignoring.\n",
+      //              gdk_device_get_name(devdata->keyboard));
+      //   continue;
+      // }
+
       devdata->is_grabbed = 1;
     }
 
@@ -557,6 +610,22 @@ void acquire_grab(GromitData *data,
       setup_input_devices(data);
       return;
     }
+
+    // if (gdk_device_grab(devdata->keyboard,
+    //                     gtk_widget_get_window(data->win),
+    //                     GDK_OWNERSHIP_NONE,
+    //                     TRUE,
+    //                     GROMIT_KEYBOARD_EVENTS,
+    //                     NULL,
+    //                     GDK_CURRENT_TIME) != GDK_GRAB_SUCCESS)
+    // {
+    //   /* this probably means the device table is outdated,
+    //  e.g. this device doesn't exist anymore */
+    //   g_printerr("Error grabbing device '%s' while grabbing all, ignoring.\n",
+    //              gdk_device_get_name(devdata->keyboard));
+    //   setup_input_devices(data);
+    //   return;
+    // }
 
     devdata->is_grabbed = 1;
 
@@ -634,4 +703,44 @@ gint snoop_key_press(GtkWidget *grab_widget,
     return TRUE;
   }
   return FALSE;
+}
+
+guint grab_keycode(GdkDisplay *display, gint device_id, unsigned int keysym, unsigned int keymodifiers, GdkWindow *win)
+{
+  HotKey hotkey;
+  hotkey.m_keycode = XKeysymToKeycode(GDK_DISPLAY_XDISPLAY(display), keysym);
+  hotkey.m_modifiers = keymodifiers;
+
+  unsigned int masks[] = {0, LockMask, Mod2Mask, LockMask | Mod2Mask};
+
+  // choose the events that we want to listen to
+  unsigned char mask[(XI_LASTEVENT + 7) / 8] = {0};
+  XISetMask(mask, XI_KeyPress);
+  XISetMask(mask, XI_KeyRelease);
+
+  // create event mask
+  XIEventMask evmask;
+  evmask.deviceid = device_id;
+  evmask.mask_len = sizeof(mask);
+  evmask.mask = mask;
+
+  // create grab modifiers
+  XIGrabModifiers modifiers[4];
+  for (unsigned int i = 0; i < sizeof(masks) / sizeof(masks[0]); ++i)
+  {
+    modifiers[i].modifiers = hotkey.m_modifiers | masks[i];
+    modifiers[i].status = 0;
+  }
+
+  // grab
+  return XIGrabKeycode(GDK_DISPLAY_XDISPLAY(display),
+                       device_id,
+                       hotkey.m_keycode,
+                       GDK_WINDOW_XID(win),
+                       GrabModeAsync,
+                       GrabModeAsync,
+                       True,
+                       &evmask,
+                       sizeof(modifiers) / sizeof(modifiers[0]),
+                       modifiers);
 }

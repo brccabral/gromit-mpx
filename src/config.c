@@ -83,8 +83,6 @@ static gboolean parse_name(GScanner *scanner, GromitLookupKey *key)
           buttons |= 1 << ((intptr_t)scanner->value.v_symbol - 1);
         else if  ((intptr_t)scanner->value.v_symbol <= 14)
           modifier |= 1 << ((intptr_t)scanner->value.v_symbol - 11);
-        else if  ((intptr_t)scanner->value.v_symbol <= 40)
-          keys |= 1 << ((intptr_t)scanner->value.v_symbol - 15);
       }
       else if (token == G_TOKEN_INT)
       {
@@ -93,6 +91,11 @@ static gboolean parse_name(GScanner *scanner, GromitLookupKey *key)
         else
           g_printerr("Only Buttons 1-10 are supported!\n");
       }
+      // a and A will become the same bit
+      else if (token >= GDK_KEY_a && token <= GDK_KEY_z)
+          keys |= 1 << ((intptr_t)scanner->value.v_symbol - 15);
+      else if (token >= GDK_KEY_A && token <= GDK_KEY_Z)
+          keys |= 1 << ((intptr_t)scanner->value.v_symbol - 41);
       else
       {
         g_printerr("skipped token\n");
@@ -191,32 +194,58 @@ gboolean parse_config(GromitData *data)
   g_scanner_scope_add_symbol(scanner, 1, "CONTROL", (gpointer)13);
   g_scanner_scope_add_symbol(scanner, 1, "META", (gpointer)14);
   g_scanner_scope_add_symbol(scanner, 1, "ALT", (gpointer)14);
-  g_scanner_scope_add_symbol(scanner, 1, "A", (gpointer)15);
-  g_scanner_scope_add_symbol(scanner, 1, "B", (gpointer)16);
-  g_scanner_scope_add_symbol(scanner, 1, "C", (gpointer)17);
-  g_scanner_scope_add_symbol(scanner, 1, "D", (gpointer)18);
-  g_scanner_scope_add_symbol(scanner, 1, "E", (gpointer)19);
-  g_scanner_scope_add_symbol(scanner, 1, "F", (gpointer)20);
-  g_scanner_scope_add_symbol(scanner, 1, "G", (gpointer)21);
-  g_scanner_scope_add_symbol(scanner, 1, "H", (gpointer)22);
-  g_scanner_scope_add_symbol(scanner, 1, "I", (gpointer)23);
-  g_scanner_scope_add_symbol(scanner, 1, "J", (gpointer)24);
-  g_scanner_scope_add_symbol(scanner, 1, "K", (gpointer)25);
-  g_scanner_scope_add_symbol(scanner, 1, "L", (gpointer)26);
-  g_scanner_scope_add_symbol(scanner, 1, "M", (gpointer)27);
-  g_scanner_scope_add_symbol(scanner, 1, "N", (gpointer)28);
-  g_scanner_scope_add_symbol(scanner, 1, "O", (gpointer)29);
-  g_scanner_scope_add_symbol(scanner, 1, "P", (gpointer)30);
-  g_scanner_scope_add_symbol(scanner, 1, "Q", (gpointer)31);
-  g_scanner_scope_add_symbol(scanner, 1, "R", (gpointer)32);
-  g_scanner_scope_add_symbol(scanner, 1, "S", (gpointer)33);
-  g_scanner_scope_add_symbol(scanner, 1, "T", (gpointer)34);
-  g_scanner_scope_add_symbol(scanner, 1, "U", (gpointer)35);
-  g_scanner_scope_add_symbol(scanner, 1, "V", (gpointer)36);
-  g_scanner_scope_add_symbol(scanner, 1, "W", (gpointer)37);
-  g_scanner_scope_add_symbol(scanner, 1, "X", (gpointer)38);
-  g_scanner_scope_add_symbol(scanner, 1, "Y", (gpointer)39);
-  g_scanner_scope_add_symbol(scanner, 1, "Z", (gpointer)40);
+  g_scanner_scope_add_symbol(scanner, 1, "a", (gpointer)15);
+  g_scanner_scope_add_symbol(scanner, 1, "b", (gpointer)16);
+  g_scanner_scope_add_symbol(scanner, 1, "c", (gpointer)17);
+  g_scanner_scope_add_symbol(scanner, 1, "d", (gpointer)18);
+  g_scanner_scope_add_symbol(scanner, 1, "e", (gpointer)19);
+  g_scanner_scope_add_symbol(scanner, 1, "f", (gpointer)20);
+  g_scanner_scope_add_symbol(scanner, 1, "g", (gpointer)21);
+  g_scanner_scope_add_symbol(scanner, 1, "h", (gpointer)22);
+  g_scanner_scope_add_symbol(scanner, 1, "i", (gpointer)23);
+  g_scanner_scope_add_symbol(scanner, 1, "j", (gpointer)24);
+  g_scanner_scope_add_symbol(scanner, 1, "k", (gpointer)25);
+  g_scanner_scope_add_symbol(scanner, 1, "l", (gpointer)26);
+  g_scanner_scope_add_symbol(scanner, 1, "m", (gpointer)27);
+  g_scanner_scope_add_symbol(scanner, 1, "n", (gpointer)28);
+  g_scanner_scope_add_symbol(scanner, 1, "o", (gpointer)29);
+  g_scanner_scope_add_symbol(scanner, 1, "p", (gpointer)30);
+  g_scanner_scope_add_symbol(scanner, 1, "q", (gpointer)31);
+  g_scanner_scope_add_symbol(scanner, 1, "r", (gpointer)32);
+  g_scanner_scope_add_symbol(scanner, 1, "s", (gpointer)33);
+  g_scanner_scope_add_symbol(scanner, 1, "t", (gpointer)34);
+  g_scanner_scope_add_symbol(scanner, 1, "u", (gpointer)35);
+  g_scanner_scope_add_symbol(scanner, 1, "v", (gpointer)36);
+  g_scanner_scope_add_symbol(scanner, 1, "w", (gpointer)37);
+  g_scanner_scope_add_symbol(scanner, 1, "x", (gpointer)38);
+  g_scanner_scope_add_symbol(scanner, 1, "y", (gpointer)39);
+  g_scanner_scope_add_symbol(scanner, 1, "z", (gpointer)40);
+  g_scanner_scope_add_symbol(scanner, 1, "A", (gpointer)41);
+  g_scanner_scope_add_symbol(scanner, 1, "B", (gpointer)42);
+  g_scanner_scope_add_symbol(scanner, 1, "C", (gpointer)43);
+  g_scanner_scope_add_symbol(scanner, 1, "D", (gpointer)44);
+  g_scanner_scope_add_symbol(scanner, 1, "E", (gpointer)45);
+  g_scanner_scope_add_symbol(scanner, 1, "F", (gpointer)46);
+  g_scanner_scope_add_symbol(scanner, 1, "G", (gpointer)47);
+  g_scanner_scope_add_symbol(scanner, 1, "H", (gpointer)48);
+  g_scanner_scope_add_symbol(scanner, 1, "I", (gpointer)49);
+  g_scanner_scope_add_symbol(scanner, 1, "J", (gpointer)50);
+  g_scanner_scope_add_symbol(scanner, 1, "K", (gpointer)51);
+  g_scanner_scope_add_symbol(scanner, 1, "L", (gpointer)52);
+  g_scanner_scope_add_symbol(scanner, 1, "M", (gpointer)53);
+  g_scanner_scope_add_symbol(scanner, 1, "N", (gpointer)54);
+  g_scanner_scope_add_symbol(scanner, 1, "O", (gpointer)55);
+  g_scanner_scope_add_symbol(scanner, 1, "P", (gpointer)56);
+  g_scanner_scope_add_symbol(scanner, 1, "Q", (gpointer)57);
+  g_scanner_scope_add_symbol(scanner, 1, "R", (gpointer)58);
+  g_scanner_scope_add_symbol(scanner, 1, "S", (gpointer)59);
+  g_scanner_scope_add_symbol(scanner, 1, "T", (gpointer)60);
+  g_scanner_scope_add_symbol(scanner, 1, "U", (gpointer)61);
+  g_scanner_scope_add_symbol(scanner, 1, "V", (gpointer)62);
+  g_scanner_scope_add_symbol(scanner, 1, "W", (gpointer)63);
+  g_scanner_scope_add_symbol(scanner, 1, "X", (gpointer)64);
+  g_scanner_scope_add_symbol(scanner, 1, "Y", (gpointer)65);
+  g_scanner_scope_add_symbol(scanner, 1, "Z", (gpointer)66);
 
   g_scanner_scope_add_symbol(scanner, 2, "size", (gpointer)1);
   g_scanner_scope_add_symbol(scanner, 2, "color", (gpointer)2);

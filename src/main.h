@@ -40,7 +40,9 @@
                              GDK_BUTTON_RELEASE_MASK | \
                              GDK_POINTER_MOTION_MASK)
 
-#define GROMIT_WINDOW_EVENTS (GROMIT_MOUSE_EVENTS | GDK_EXPOSURE_MASK)
+#define GROMIT_KEYBOARD_EVENTS (GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK)
+
+#define GROMIT_WINDOW_EVENTS (GROMIT_MOUSE_EVENTS | GROMIT_KEYBOARD_EVENTS | GDK_EXPOSURE_MASK)
 
 /* Atoms used to control Gromit */
 #define GA_CONTROL gdk_atom_intern("Gromit/control", FALSE)
@@ -95,6 +97,7 @@ typedef struct
 {
   guint buttons;
   guint modifiers;
+  gulong keys;
 } GromitState;
 
 typedef struct
@@ -110,6 +113,7 @@ typedef struct
   guint32 motion_time;
   GList *coordlist;
   GdkDevice *device;
+  GdkDevice *keyboard;
   guint index;
   GromitPaintContext *cur_context;
   gboolean is_grabbed;
@@ -199,5 +203,7 @@ void indicate_active(GromitData *data, gboolean YESNO);
 
 gboolean compare_state(GromitState lhs, GromitState rhs);
 gchar *key2string(GromitLookupKey key);
+
+guint find_keycode(GdkDisplay *display, const gchar *keyval);
 
 #endif
