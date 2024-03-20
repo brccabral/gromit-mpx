@@ -1,4 +1,4 @@
-/* 
+/*
  * Gromit -- a program for painting on the screen
  * Copyright (C) 2000 Simon Budig <Simon.Budig@unix-ag.org>
  *
@@ -35,30 +35,30 @@
 #include <libayatana-appindicator/app-indicator.h>
 #endif
 
-#define GROMIT_MOUSE_EVENTS ( GDK_BUTTON_MOTION_MASK | \
-                              GDK_BUTTON_PRESS_MASK | \
-                              GDK_BUTTON_RELEASE_MASK | \
-                              GDK_POINTER_MOTION_MASK )
+#define GROMIT_MOUSE_EVENTS (GDK_BUTTON_MOTION_MASK |  \
+                             GDK_BUTTON_PRESS_MASK |   \
+                             GDK_BUTTON_RELEASE_MASK | \
+                             GDK_POINTER_MOTION_MASK)
 
-#define GROMIT_WINDOW_EVENTS ( GROMIT_MOUSE_EVENTS | GDK_EXPOSURE_MASK)
+#define GROMIT_WINDOW_EVENTS (GROMIT_MOUSE_EVENTS | GDK_EXPOSURE_MASK)
 
 /* Atoms used to control Gromit */
-#define GA_CONTROL    gdk_atom_intern ("Gromit/control", FALSE)
-#define GA_STATUS     gdk_atom_intern ("Gromit/status", FALSE)
-#define GA_QUIT       gdk_atom_intern ("Gromit/quit", FALSE)
-#define GA_ACTIVATE   gdk_atom_intern ("Gromit/activate", FALSE)
-#define GA_DEACTIVATE gdk_atom_intern ("Gromit/deactivate", FALSE)
-#define GA_TOGGLE     gdk_atom_intern ("Gromit/toggle", FALSE)
-#define GA_LINE       gdk_atom_intern ("Gromit/line", FALSE)
-#define GA_VISIBILITY gdk_atom_intern ("Gromit/visibility", FALSE)
-#define GA_CLEAR      gdk_atom_intern ("Gromit/clear", FALSE)
-#define GA_RELOAD     gdk_atom_intern ("Gromit/reload", FALSE)
-#define GA_UNDO       gdk_atom_intern ("Gromit/undo", FALSE)
-#define GA_REDO       gdk_atom_intern ("Gromit/redo", FALSE)
+#define GA_CONTROL gdk_atom_intern("Gromit/control", FALSE)
+#define GA_STATUS gdk_atom_intern("Gromit/status", FALSE)
+#define GA_QUIT gdk_atom_intern("Gromit/quit", FALSE)
+#define GA_ACTIVATE gdk_atom_intern("Gromit/activate", FALSE)
+#define GA_DEACTIVATE gdk_atom_intern("Gromit/deactivate", FALSE)
+#define GA_TOGGLE gdk_atom_intern("Gromit/toggle", FALSE)
+#define GA_LINE gdk_atom_intern("Gromit/line", FALSE)
+#define GA_VISIBILITY gdk_atom_intern("Gromit/visibility", FALSE)
+#define GA_CLEAR gdk_atom_intern("Gromit/clear", FALSE)
+#define GA_RELOAD gdk_atom_intern("Gromit/reload", FALSE)
+#define GA_UNDO gdk_atom_intern("Gromit/undo", FALSE)
+#define GA_REDO gdk_atom_intern("Gromit/redo", FALSE)
 
-#define GA_DATA       gdk_atom_intern ("Gromit/data", FALSE)
-#define GA_TOGGLEDATA gdk_atom_intern ("Gromit/toggledata", FALSE)
-#define GA_LINEDATA   gdk_atom_intern ("Gromit/linedata", FALSE)
+#define GA_DATA gdk_atom_intern("Gromit/data", FALSE)
+#define GA_TOGGLEDATA gdk_atom_intern("Gromit/toggledata", FALSE)
+#define GA_LINEDATA gdk_atom_intern("Gromit/linedata", FALSE)
 
 #define GROMIT_MAX_UNDO 4
 
@@ -75,128 +75,124 @@ typedef enum
 {
   GROMIT_ARROW_START = 1,
   GROMIT_ARROW_END = 2,
-  GROMIT_ARROW_DOUBLE = (GROMIT_ARROW_START | GROMIT_ARROW_END )
+  GROMIT_ARROW_DOUBLE = (GROMIT_ARROW_START | GROMIT_ARROW_END)
 } GromitArrowType;
 
 typedef struct
 {
   GromitPaintType type;
-  guint           width;
-  gfloat          arrowsize;
+  guint width;
+  gfloat arrowsize;
   GromitArrowType arrow_type;
-  guint           minwidth;
-  guint           maxwidth;
-  GdkRGBA         *paint_color;
-  cairo_t         *paint_ctx;
-  gdouble         pressure;
+  guint minwidth;
+  guint maxwidth;
+  GdkRGBA *paint_color;
+  cairo_t *paint_ctx;
+  gdouble pressure;
 } GromitPaintContext;
 
-
-typedef struct {
-    guint buttons;
-    guint modifiers;
+typedef struct
+{
+  guint buttons;
+  guint modifiers;
 } GromitState;
 
-
-typedef struct {
-    GromitState state;
-    gchar *name;
+typedef struct
+{
+  GromitState state;
+  gchar *name;
 } GromitLookupKey;
 
-
 typedef struct
 {
-  gdouble      lastx;
-  gdouble      lasty;
-  guint32      motion_time;
-  GList*       coordlist;
-  GdkDevice*   device;
-  guint        index;
-  GromitState  state;
+  gdouble lastx;
+  gdouble lasty;
+  guint32 motion_time;
+  GList *coordlist;
+  GdkDevice *device;
+  guint index;
+  GromitState state;
   GromitPaintContext *cur_context;
-  gboolean     is_grabbed;
-  gboolean     was_grabbed;
-  GdkDevice*   lastslave;
+  gboolean is_grabbed;
+  gboolean was_grabbed;
+  GdkDevice *lastslave;
 } GromitDeviceData;
 
-
 typedef struct
 {
-  GtkWidget   *win;
+  GtkWidget *win;
   AppIndicator *trayicon;
 
-  GdkCursor   *paint_cursor;
-  GdkCursor   *erase_cursor;
+  GdkCursor *paint_cursor;
+  GdkCursor *erase_cursor;
 
-  GdkDisplay  *display;
-  GdkScreen   *screen;
-  gboolean     xinerama;
-  gboolean     composited;
-  GdkWindow   *root;
-  gchar       *hot_keyval;
-  guint        hot_keycode;
-  gchar       *undo_keyval;
-  guint        undo_keycode;
-  gdouble      opacity;
+  GdkDisplay *display;
+  GdkScreen *screen;
+  gboolean xinerama;
+  gboolean composited;
+  GdkWindow *root;
+  gchar *hot_keyval;
+  guint hot_keycode;
+  gchar *undo_keyval;
+  guint undo_keycode;
+  gdouble opacity;
 
-  GdkRGBA     *white;
-  GdkRGBA     *black;
-  GdkRGBA     *red;
+  GdkRGBA *white;
+  GdkRGBA *black;
+  GdkRGBA *red;
 
   GromitPaintContext *default_pen;
   GromitPaintContext *default_eraser;
- 
-  GHashTable  *tool_config;
+
+  GHashTable *tool_config;
 
   cairo_surface_t *backbuffer;
   /* Auxiliary backbuffer for tools like LINE or RECT */
   cairo_surface_t *aux_backbuffer;
 
-  GHashTable  *devdatatable;
+  GHashTable *devdatatable;
 
-  guint        timeout_id;
-  guint        modified;
-  guint        delayed;
-  guint        maxwidth;
-  guint        width;
-  guint        height;
-  guint        client;
-  guint        painted;
-  gboolean     hidden;
-  gboolean     debug;
+  guint timeout_id;
+  guint modified;
+  guint delayed;
+  guint maxwidth;
+  guint width;
+  guint height;
+  guint client;
+  guint painted;
+  gboolean hidden;
+  gboolean debug;
 
-  gchar       *clientdata;
+  gchar *clientdata;
 
   cairo_surface_t *undobuffer[GROMIT_MAX_UNDO];
-  gint            undo_head, undo_depth, redo_depth;
-
+  gint undo_head, undo_depth, redo_depth;
 
   gboolean show_intro_on_startup;
 
 } GromitData;
 
+void toggle_visibility(GromitData *data);
+void hide_window(GromitData *data);
+void show_window(GromitData *data);
 
-void toggle_visibility (GromitData *data);
-void hide_window (GromitData *data);
-void show_window (GromitData *data);
+void parse_print_help(gpointer key, gpointer value, gpointer user_data);
 
-void parse_print_help (gpointer key, gpointer value, gpointer user_data);
+void select_tool(GromitData *data, GdkDevice *device, GdkDevice *slave_device, GromitState state);
 
-void select_tool (GromitData *data, GdkDevice *device, GdkDevice *slave_device, GromitState state);
+void copy_surface(cairo_surface_t *dst, cairo_surface_t *src);
+void swap_surfaces(cairo_surface_t *a, cairo_surface_t *b);
+void snap_undo_state(GromitData *data);
+void undo_drawing(GromitData *data);
+void redo_drawing(GromitData *data);
 
-void copy_surface (cairo_surface_t *dst, cairo_surface_t *src);
-void swap_surfaces (cairo_surface_t *a, cairo_surface_t *b);
-void snap_undo_state (GromitData *data);
-void undo_drawing (GromitData *data);
-void redo_drawing (GromitData *data);
+void clear_screen(GromitData *data);
 
-void clear_screen (GromitData *data);
-
-GromitPaintContext *paint_context_new (GromitData *data, GromitPaintType type,
-				       GdkRGBA *fg_color, guint width,
-                                       guint arrowsize, GromitArrowType arrowtype,
-                                       guint minwidth, guint maxwidth);
-void paint_context_free (GromitPaintContext *context);
+GromitPaintContext *paint_context_new(GromitData *data, GromitPaintType type,
+                                      GdkRGBA *fg_color, guint width,
+                                      guint arrowsize, GromitArrowType arrowtype,
+                                      guint minwidth, guint maxwidth);
+void paint_context_free(GromitPaintContext *context);
 
 void indicate_active(GromitData *data, gboolean YESNO);
 

@@ -1,4 +1,4 @@
-/* 
+/*
  * Gromit-MPX -- a program for painting on the screen
  *
  * Gromit Copyright (C) 2000 Simon Budig <Simon.Budig@unix-ag.org>
@@ -33,8 +33,8 @@
    Select and parse system or user .cfg file.
    Returns TRUE if something got parsed successfully, FALSE otherwise.
 */
-gboolean parse_config (GromitData *data);
-int parse_args (int argc, char **argv, GromitData *data);
+gboolean parse_config(GromitData *data);
+int parse_args(int argc, char **argv, GromitData *data);
 
 /* fallback hot key, if not specified on command line or in config file */
 #ifndef DEFAULT_HOTKEY
