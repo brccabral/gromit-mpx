@@ -369,7 +369,7 @@ void select_tool(GromitData *data,
                   cursor,
                   GDK_CURRENT_TIME);
 
-  devdata->state = state;
+  data->state = state;
   devdata->lastslave = slave_device;
 }
 
