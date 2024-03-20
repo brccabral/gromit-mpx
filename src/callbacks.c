@@ -493,7 +493,7 @@ gboolean on_keypress(GtkWidget *win, GdkEventKey *ev, gpointer user_data)
 {
   GromitData *data = (GromitData *)user_data;
 
-  g_printerr("on_keypress %s\n", gdk_keyval_name(ev->keyval));
+  g_printerr("BRC: on_keypress %s\n", gdk_keyval_name(ev->keyval));
 
   // add key to GromitState
   if (ev->keyval >= GDK_KEY_a && ev->keyval <= GDK_KEY_z)
@@ -506,7 +506,7 @@ gboolean on_keyrelease(GtkWidget *win, GdkEventKey *ev, gpointer user_data)
 {
   GromitData *data = (GromitData *)user_data;
 
-  g_printerr("on_keyrelease %s\n", gdk_keyval_name(ev->keyval));
+  g_printerr("BRC: on_keyrelease %s\n", gdk_keyval_name(ev->keyval));
 
   // remove key from GromitState
   if (ev->keyval >= GDK_KEY_a && ev->keyval <= GDK_KEY_z)
