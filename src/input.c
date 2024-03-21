@@ -255,18 +255,7 @@ void setup_input_devices(GromitData *data)
       /* get attached keyboard and grab the hotkey */
       if (GDK_IS_X11_DISPLAY(data->display))
       {
-        gint dev_id = gdk_x11_device_get_id(device);
-
-        gint kbd_dev_id = -1;
-        XIDeviceInfo *devinfo;
-        int devicecount = 0;
-
-        devinfo = XIQueryDevice(GDK_DISPLAY_XDISPLAY(data->display),
-                                dev_id,
-                                &devicecount);
-        if (devicecount)
-          kbd_dev_id = devinfo->attachment;
-        XIFreeDeviceInfo(devinfo);
+        gint kbd_dev_id = get_keyboard_id(data->display, device);
 
         if (kbd_dev_id != -1)
         {
@@ -353,17 +342,7 @@ void release_grab(GromitData *data,
   }
   else
   {
-    gint dev_id = gdk_x11_device_get_id(dev);
-    gint kbd_dev_id = -1;
-    XIDeviceInfo *devinfo;
-    int devicecount = 0;
-
-    devinfo = XIQueryDevice(GDK_DISPLAY_XDISPLAY(data->display),
-                            dev_id,
-                            &devicecount);
-    if (devicecount)
-      kbd_dev_id = devinfo->attachment;
-    XIFreeDeviceInfo(devinfo);
+    gint kbd_dev_id = get_keyboard_id(data->display, dev);
 
     if (kbd_dev_id != -1)
     {
@@ -455,17 +434,7 @@ void acquire_grab(GromitData *data,
   }
   else
   {
-    gint dev_id = gdk_x11_device_get_id(dev);
-    gint kbd_dev_id = -1;
-    XIDeviceInfo *devinfo;
-    int devicecount = 0;
-
-    devinfo = XIQueryDevice(GDK_DISPLAY_XDISPLAY(data->display),
-                            dev_id,
-                            &devicecount);
-    if (devicecount)
-      kbd_dev_id = devinfo->attachment;
-    XIFreeDeviceInfo(devinfo);
+    gint kbd_dev_id = get_keyboard_id(data->display, dev);
 
     if (kbd_dev_id != -1)
     {
@@ -696,6 +665,24 @@ guint ungrab_keycode(GromitData *data, gint device_id, const char *key, int num_
     gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(dialog);
   }
+
+  return result;
+}
+
+gint get_keyboard_id(GdkDisplay *diplay, GdkDevice *device)
+{
+  gint dev_id = gdk_x11_device_get_id(device);
+
+  gint result = -1;
+  XIDeviceInfo *devinfo;
+  int devicecount = 0;
+
+  devinfo = XIQueryDevice(GDK_DISPLAY_XDISPLAY(diplay),
+                          dev_id,
+                          &devicecount);
+  if (devicecount)
+    result = devinfo->attachment;
+  XIFreeDeviceInfo(devinfo);
 
   return result;
 }
