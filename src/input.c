@@ -340,21 +340,6 @@ void release_grab(GromitData *data,
     // at least on newer GNOME versions
     gdk_window_invalidate_rect(gtk_widget_get_window(data->win), NULL, 0);
   }
-  else
-  {
-    gint kbd_dev_id = get_keyboard_id(data->display, dev);
-
-    if (kbd_dev_id != -1)
-    {
-      XIGrabModifiers key_modifiers[] = {{0, 0}, {ShiftMask, 0}};
-      for (guchar k = 'a'; k <= 'z'; ++k)
-      {
-        gchar key[] = {k, '\0'};
-        ungrab_keycode(data, kbd_dev_id, key,
-                       sizeof(key_modifiers) / sizeof(key_modifiers[0]), key_modifiers);
-      }
-    }
-  }
 
   if (!dev) /* this means release all grabs */
   {
@@ -396,6 +381,20 @@ void release_grab(GromitData *data,
 
   if (devdata->is_grabbed)
   {
+    // ungrab keys
+    gint kbd_dev_id = get_keyboard_id(data->display, dev);
+
+    if (kbd_dev_id != -1)
+    {
+      XIGrabModifiers key_modifiers[] = {{0, 0}, {ShiftMask, 0}};
+      for (guchar k = 'a'; k <= 'z'; ++k)
+      {
+        gchar key[] = {k, '\0'};
+        ungrab_keycode(data, kbd_dev_id, key,
+                       sizeof(key_modifiers) / sizeof(key_modifiers[0]), key_modifiers);
+      }
+    }
+
     gdk_device_ungrab(devdata->device, GDK_CURRENT_TIME);
     devdata->is_grabbed = 0;
     /* workaround buggy GTK3 ? */
@@ -431,29 +430,6 @@ void acquire_grab(GromitData *data,
     // force a redraw, otherwise input shape is not applied,
     // at least on newer GNOME versions
     gdk_window_invalidate_rect(gtk_widget_get_window(data->win), NULL, 0);
-  }
-  else
-  {
-    gint kbd_dev_id = get_keyboard_id(data->display, dev);
-
-    if (kbd_dev_id != -1)
-    {
-      unsigned char bits[4] = {0, 0, 0, 0};
-      XISetMask(bits, XI_KeyPress);
-      XISetMask(bits, XI_KeyRelease);
-
-      XIEventMask mask;
-      mask.mask = bits;
-      mask.mask_len = sizeof(bits);
-
-      XIGrabModifiers key_modifiers[] = {{0, 0}, {ShiftMask, 0}};
-      for (guchar k = 'a'; k <= 'z'; ++k)
-      {
-        gchar key[] = {k, '\0'};
-        grab_keycode(data, kbd_dev_id, key,
-                     sizeof(key_modifiers) / sizeof(key_modifiers[0]), key_modifiers, &mask);
-      }
-    }
   }
 
   if (!dev) /* this means grab all */
@@ -506,6 +482,28 @@ void acquire_grab(GromitData *data,
 
   if (!devdata->is_grabbed)
   {
+    // grab keys
+    gint kbd_dev_id = get_keyboard_id(data->display, dev);
+
+    if (kbd_dev_id != -1)
+    {
+      unsigned char bits[4] = {0, 0, 0, 0};
+      XISetMask(bits, XI_KeyPress);
+      XISetMask(bits, XI_KeyRelease);
+
+      XIEventMask mask;
+      mask.mask = bits;
+      mask.mask_len = sizeof(bits);
+
+      XIGrabModifiers key_modifiers[] = {{0, 0}, {ShiftMask, 0}};
+      for (guchar k = 'a'; k <= 'z'; ++k)
+      {
+        gchar key[] = {k, '\0'};
+        grab_keycode(data, kbd_dev_id, key,
+                     sizeof(key_modifiers) / sizeof(key_modifiers[0]), key_modifiers, &mask);
+      }
+    }
+
     GdkCursor *cursor;
     if (devdata->cur_context && devdata->cur_context->type == GROMIT_ERASER)
       cursor = data->erase_cursor;
