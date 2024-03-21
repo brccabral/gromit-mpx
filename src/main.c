@@ -472,15 +472,15 @@ void redo_drawing(GromitData *data)
 void main_do_event(GdkEventAny *event,
                    GromitData *data)
 {
-  guint keycode = ((GdkEventKey *)event)->hardware_keycode;
-  // guint keychar = XKeycodeToKeysym();
+  guint16 keycode = ((GdkEventKey *)event)->hardware_keycode;
+  guint32 keyunicode = gdk_keyval_to_unicode(((GdkEventKey *)event)->keyval);
   if ((event->type == GDK_KEY_PRESS ||
        event->type == GDK_KEY_RELEASE) &&
       event->window == data->root &&
       (keycode == data->hot_keycode ||
        keycode == data->undo_keycode ||
-       (keycode >= find_keycode(data->display, "a") && keycode <= find_keycode(data->display, "z")) ||
-       (keycode >= find_keycode(data->display, "A") && keycode <= find_keycode(data->display, "Z"))))
+       (keyunicode >= GDK_KEY_A && keyunicode <= GDK_KEY_Z) ||
+       (keyunicode >= GDK_KEY_a && keyunicode <= GDK_KEY_z)))
   {
     /* redirect the event to our main window, so that GTK+ doesn't
      * throw it away (there is no GtkWidget for the root window...)

@@ -295,7 +295,7 @@ void setup_input_devices(GromitData *data)
           }
 
           XIGrabModifiers key_modifiers[] = {{0, 0}, {ShiftMask, 0}};
-          for (guchar k = 'a'; k < 'z'; ++k)
+          for (guchar k = 'a'; k <= 'z'; ++k)
           {
             gchar key[] = {k, '\0'};
             grab_keycode(data, kbd_dev_id, key,
