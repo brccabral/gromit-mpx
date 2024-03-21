@@ -1,4 +1,4 @@
-/* 
+/*
  * Gromit-MPX -- a program for painting on the screen
  *
  * Gromit Copyright (C) 2000 Simon Budig <Simon.Budig@unix-ag.org>
@@ -28,66 +28,62 @@
 #include <gdk/gdk.h>
 #include <gtk/gtk.h>
 
+gboolean on_expose(GtkWidget *widget,
+                   cairo_t *cr,
+                   gpointer user_data);
 
-gboolean on_expose (GtkWidget *widget,
-		    cairo_t* cr,
-		    gpointer user_data);
-
-gboolean on_configure (GtkWidget *widget,
-		       GdkEventExpose *event,
-		       gpointer user_data);
-
+gboolean on_configure(GtkWidget *widget,
+                      GdkEventExpose *event,
+                      gpointer user_data);
 
 void on_screen_changed(GtkWidget *widget,
-		       GdkScreen *previous_screen,
-		       gpointer   user_data);
+                       GdkScreen *previous_screen,
+                       gpointer user_data);
 
 void on_monitors_changed(GdkScreen *screen,
-			 gpointer   user_data);
+                         gpointer user_data);
 
 void on_composited_changed(GdkScreen *screen,
-			   gpointer   user_data);
+                           gpointer user_data);
 
-void on_clientapp_selection_get (GtkWidget          *widget,
-				 GtkSelectionData   *selection_data,
-				 guint               info,
-				 guint               time,
-				 gpointer            user_data);
+void on_clientapp_selection_get(GtkWidget *widget,
+                                GtkSelectionData *selection_data,
+                                guint info,
+                                guint time,
+                                gpointer user_data);
 
-void on_clientapp_selection_received (GtkWidget *widget,
-				      GtkSelectionData *selection_data,
-				      guint time,
-				      gpointer user_data);
+void on_clientapp_selection_received(GtkWidget *widget,
+                                     GtkSelectionData *selection_data,
+                                     guint time,
+                                     gpointer user_data);
 
-gboolean on_buttonpress (GtkWidget *win, GdkEventButton *ev, gpointer user_data);
+gboolean on_buttonpress(GtkWidget *win, GdkEventButton *ev, gpointer user_data);
 
-gboolean on_motion (GtkWidget *win, GdkEventMotion *ev, gpointer user_data);
+gboolean on_motion(GtkWidget *win, GdkEventMotion *ev, gpointer user_data);
 
-gboolean on_buttonrelease (GtkWidget *win, GdkEventButton *ev, gpointer user_data);
+gboolean on_buttonrelease(GtkWidget *win, GdkEventButton *ev, gpointer user_data);
 
 gboolean on_keypress(GtkWidget *win, GdkEventKey *ev, gpointer user_data);
 gboolean on_keyrelease(GtkWidget *win, GdkEventKey *ev, gpointer user_data);
 
-void on_mainapp_selection_get (GtkWidget          *widget,
-			       GtkSelectionData   *selection_data,
-			       guint               info,
-			       guint               time,
-			       gpointer            user_data);
+void on_mainapp_selection_get(GtkWidget *widget,
+                              GtkSelectionData *selection_data,
+                              guint info,
+                              guint time,
+                              gpointer user_data);
 
+void on_mainapp_selection_received(GtkWidget *widget,
+                                   GtkSelectionData *selection_data,
+                                   guint time,
+                                   gpointer user_data);
 
-void on_mainapp_selection_received (GtkWidget *widget,
-				    GtkSelectionData *selection_data,
-				    guint time,
-				    gpointer user_data);
+void on_device_removed(GdkDeviceManager *device_manager,
+                       GdkDevice *device,
+                       gpointer user_data);
 
-
-void on_device_removed (GdkDeviceManager *device_manager,
-			GdkDevice        *device,
-			gpointer          user_data);
-
-void on_device_added (GdkDeviceManager *device_manager,
-		      GdkDevice        *device,
-		      gpointer          user_data);
+void on_device_added(GdkDeviceManager *device_manager,
+                     GdkDevice *device,
+                     gpointer user_data);
 
 void on_signal(int signum);
 
@@ -95,52 +91,52 @@ void on_signal(int signum);
   menu callbacks
  */
 gboolean on_toggle_paint(GtkWidget *widget,
-			 GdkEventButton  *ev,
-			 gpointer   user_data);
+                         GdkEventButton *ev,
+                         gpointer user_data);
 
-void on_toggle_paint_all (GtkMenuItem *menuitem,
-			  gpointer     user_data);
+void on_toggle_paint_all(GtkMenuItem *menuitem,
+                         gpointer user_data);
 
-void on_clear (GtkMenuItem *menuitem,
-	       gpointer     user_data);
+void on_clear(GtkMenuItem *menuitem,
+              gpointer user_data);
 
 void on_toggle_vis(GtkMenuItem *menuitem,
-		   gpointer     user_data);
+                   gpointer user_data);
 
 void on_thicker_lines(GtkMenuItem *menuitem,
-		      gpointer     user_data);
+                      gpointer user_data);
 
 void on_thinner_lines(GtkMenuItem *menuitem,
-		      gpointer     user_data);
+                      gpointer user_data);
 
 void on_opacity_bigger(GtkMenuItem *menuitem,
-		       gpointer     user_data);
+                       gpointer user_data);
 
 void on_opacity_lesser(GtkMenuItem *menuitem,
-		       gpointer     user_data);
+                       gpointer user_data);
 
 void on_undo(GtkMenuItem *menuitem,
-	     gpointer     user_data);
+             gpointer user_data);
 
 void on_redo(GtkMenuItem *menuitem,
-	     gpointer     user_data);
+             gpointer user_data);
 
 void on_about(GtkMenuItem *menuitem,
-	      gpointer     user_data);
+              gpointer user_data);
 
 void on_intro(GtkMenuItem *menuitem,
-	      gpointer user_data);
+              gpointer user_data);
 
 void on_issues(GtkMenuItem *menuitem,
                gpointer user_data);
 
 void on_support_liberapay(GtkMenuItem *menuitem,
-			  gpointer user_data);
+                          gpointer user_data);
 
 void on_support_patreon(GtkMenuItem *menuitem,
-			gpointer user_data);
+                        gpointer user_data);
 
 void on_support_paypal(GtkMenuItem *menuitem,
-		       gpointer user_data);
+                       gpointer user_data);
 
 #endif
