@@ -500,6 +500,9 @@ gboolean on_keypress(GtkWidget *win, GdkEventKey *ev, gpointer user_data)
     data->state.keys |= 1 << (ev->keyval - GDK_KEY_a);
   if (ev->keyval >= GDK_KEY_A && ev->keyval <= GDK_KEY_Z)
     data->state.keys |= 1 << (ev->keyval - GDK_KEY_A);
+
+  return TRUE;
+  
 }
 
 gboolean on_keyrelease(GtkWidget *win, GdkEventKey *ev, gpointer user_data)
@@ -513,6 +516,8 @@ gboolean on_keyrelease(GtkWidget *win, GdkEventKey *ev, gpointer user_data)
     data->state.keys &= ~(1 << (ev->keyval - GDK_KEY_a));
   if (ev->keyval >= GDK_KEY_A && ev->keyval <= GDK_KEY_Z)
     data->state.keys &= ~(1 << (ev->keyval - GDK_KEY_A));
+
+  return TRUE;
 }
 
 /* Remote control */
