@@ -249,7 +249,8 @@ void select_tool(GromitData *data,
                  GromitState state)
 {
   guint buttons = 0, modifier = 0, slave_len = 0, len = 0, default_len = 0;
-  guint req_buttons = 0, req_modifier = 0;
+  gulong keys = 0;
+  guint req_buttons = 0, req_modifier = 0, req_keys = 0;
   guint i, j, success = 0;
   GromitPaintContext *context = NULL;
   GromitLookupKey keySlave = {}, keyName = {}, keyDefault = {};
@@ -269,6 +270,7 @@ void select_tool(GromitData *data,
     /* Extract Button/Modifiers from state (see GdkModifierType) */
     req_buttons = state.buttons;
     req_modifier = state.modifiers;
+    req_keys = state.keys;
 
     /*
   Iterate i up until <= req_buttons.
@@ -292,6 +294,8 @@ void select_tool(GromitData *data,
       if (i > 0 && (buttons == 0 || buttons != i))
         continue;
 
+      keys = req_keys;
+
       j = -1;
       do
       {
@@ -299,10 +303,13 @@ void select_tool(GromitData *data,
         modifier = req_modifier & ((1 << j) - 1);
         keySlave.state.buttons = buttons;
         keySlave.state.modifiers = modifier;
+        keySlave.state.keys = keys;
         keyName.state.buttons = buttons;
         keyName.state.modifiers = modifier;
+        keyName.state.keys = keys;
         keyDefault.state.buttons = buttons;
         keyDefault.state.modifiers = modifier;
+        keyDefault.state.keys = keys;
 
         if (data->debug)
           g_printerr("DEBUG: select_tool looking up context for '%s' attached to '%s'\n", key2string(keySlave), key2string(keyName));
