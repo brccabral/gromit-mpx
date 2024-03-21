@@ -493,31 +493,47 @@ gboolean on_keypress(GtkWidget *win, GdkEventKey *ev, gpointer user_data)
 {
   GromitData *data = (GromitData *)user_data;
 
-  g_printerr("BRC: on_keypress %s\n", gdk_keyval_name(ev->keyval));
+  guint32 keyunicode = gdk_keyval_to_unicode(ev->keyval);
+  gchar *keyname = gdk_keyval_name(ev->keyval);
+  GdkDevice *dev = gdk_event_get_device(ev);
+
+  if (data->debug)
+    g_printerr("DEBUG: Received key %s %d press from device '%s'\n", keyname, keyunicode, gdk_device_get_name(dev));
 
   // add key to GromitState
-  if (ev->keyval >= GDK_KEY_a && ev->keyval <= GDK_KEY_z)
-    data->state.keys |= 1 << (ev->keyval - GDK_KEY_a);
-  if (ev->keyval >= GDK_KEY_A && ev->keyval <= GDK_KEY_Z)
-    data->state.keys |= 1 << (ev->keyval - GDK_KEY_A);
+  if (keyunicode >= GDK_KEY_a && keyunicode <= GDK_KEY_z)
+  {
+    data->state.keys |= 1 << (keyunicode - GDK_KEY_a);
+    return TRUE;
+  }
+  if (keyunicode >= GDK_KEY_A && keyunicode <= GDK_KEY_Z)
+  {
+    data->state.keys |= 1 << (keyunicode - GDK_KEY_A);
+    return TRUE;
+  }
 
-  return TRUE;
-  
+  return FALSE;
 }
 
 gboolean on_keyrelease(GtkWidget *win, GdkEventKey *ev, gpointer user_data)
 {
   GromitData *data = (GromitData *)user_data;
 
-  g_printerr("BRC: on_keyrelease %s\n", gdk_keyval_name(ev->keyval));
+  guint32 keyunicode = gdk_keyval_to_unicode(ev->keyval);
 
   // remove key from GromitState
-  if (ev->keyval >= GDK_KEY_a && ev->keyval <= GDK_KEY_z)
-    data->state.keys &= ~(1 << (ev->keyval - GDK_KEY_a));
-  if (ev->keyval >= GDK_KEY_A && ev->keyval <= GDK_KEY_Z)
-    data->state.keys &= ~(1 << (ev->keyval - GDK_KEY_A));
+  if (keyunicode >= GDK_KEY_a && keyunicode <= GDK_KEY_z)
+  {
+    data->state.keys &= ~(1 << (keyunicode - GDK_KEY_a));
+    return TRUE;
+  }
+  if (keyunicode >= GDK_KEY_A && keyunicode <= GDK_KEY_Z)
+  {
+    data->state.keys &= ~(1 << (keyunicode - GDK_KEY_A));
+    return TRUE;
+  }
 
-  return TRUE;
+  return FALSE;
 }
 
 /* Remote control */

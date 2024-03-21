@@ -588,9 +588,6 @@ gint snoop_key_press(GtkWidget *grab_widget,
   GromitData *data = (GromitData *)func_data;
   GdkDevice *dev = gdk_event_get_device((GdkEvent *)event);
 
-  if (data->debug)
-    g_printerr("DEBUG: snoop_key_press event->type %d event->hardware_keycode %d\n", event->type, event->hardware_keycode);
-
   if (event->type == GDK_KEY_PRESS &&
       event->hardware_keycode == data->hot_keycode)
   {
@@ -623,6 +620,7 @@ gint snoop_key_press(GtkWidget *grab_widget,
 
     return TRUE;
   }
+
   return FALSE;
 }
 

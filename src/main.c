@@ -671,10 +671,10 @@ void setup_main_app(GromitData *data, int argc, char **argv)
   if (data->hot_keyval)
   {
     data->hot_keycode = find_keycode(data->display, data->hot_keyval);
-    if(!data->hot_keycode)
+    if (!data->hot_keycode)
     {
-        g_printerr("cannot find the key \"%s\"\n", data->hot_keyval);
-        exit(1);
+      g_printerr("cannot find the key \"%s\"\n", data->hot_keyval);
+      exit(1);
     }
   }
 
@@ -684,10 +684,10 @@ void setup_main_app(GromitData *data, int argc, char **argv)
   if (data->undo_keyval)
   {
     data->undo_keycode = find_keycode(data->display, data->undo_keyval);
-    if(!data->undo_keycode)
+    if (!data->undo_keycode)
     {
-        g_printerr("cannot find the key \"%s\"\n", data->undo_keyval);
-        exit(1);
+      g_printerr("cannot find the key \"%s\"\n", data->undo_keyval);
+      exit(1);
     }
   }
 
