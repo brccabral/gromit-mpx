@@ -27,6 +27,6 @@ typedef struct
   unsigned int m_keycode, m_modifiers;
 } HotKey;
 
-guint grab_keycode(GromitData *data, gint device_id, const char *key, int num_modifiers, XIGrabModifiers *key_modifiers);
+guint grab_keycode(GromitData *data, gint device_id, const char *key, int num_modifiers, XIGrabModifiers *key_modifiers, XIEventMask *mask);
 
 #endif

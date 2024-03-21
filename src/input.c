@@ -270,34 +270,36 @@ void setup_input_devices(GromitData *data)
 
         if (kbd_dev_id != -1)
         {
-          XIEventMask mask;
           unsigned char bits[4] = {0, 0, 0, 0};
-          mask.mask = bits;
-          mask.mask_len = sizeof(bits);
-
           XISetMask(bits, XI_KeyPress);
           XISetMask(bits, XI_KeyRelease);
 
+          XIEventMask mask;
+          mask.mask = bits;
+          mask.mask_len = sizeof(bits);
+
           XIGrabModifiers modifiers[] = {{XIAnyModifier, 0}};
-          int nmods = 1;
 
           gdk_x11_display_error_trap_push(data->display);
 
           if (data->hot_keycode)
           {
-            grab_keycode(data, kbd_dev_id, data->hot_keyval, sizeof(modifiers) / sizeof(modifiers[0]), modifiers);
+            grab_keycode(data, kbd_dev_id, data->hot_keyval,
+                         sizeof(modifiers) / sizeof(modifiers[0]), modifiers, &mask);
           }
 
-#if 1
-          XIGrabModifiers key_modifiers[] = {{0, 0}, {ShiftMask, 0}};
-          gchar *key = "a";
-
-          grab_keycode(data, kbd_dev_id, "a", sizeof(key_modifiers) / sizeof(key_modifiers[0]), key_modifiers);
-
-#endif
           if (data->undo_keycode)
           {
-            grab_keycode(data, kbd_dev_id, data->undo_keyval, sizeof(modifiers) / sizeof(modifiers[0]), modifiers);
+            grab_keycode(data, kbd_dev_id, data->undo_keyval,
+                         sizeof(modifiers) / sizeof(modifiers[0]), modifiers, &mask);
+          }
+
+          XIGrabModifiers key_modifiers[] = {{0, 0}, {ShiftMask, 0}};
+          for (guchar k = 'a'; k < 'z'; ++k)
+          {
+            gchar key[] = {k, '\0'};
+            grab_keycode(data, kbd_dev_id, key,
+                         sizeof(key_modifiers) / sizeof(key_modifiers[0]), key_modifiers, &mask);
           }
 
           XSync(GDK_DISPLAY_XDISPLAY(data->display), False);
@@ -624,16 +626,8 @@ gint snoop_key_press(GtkWidget *grab_widget,
   return FALSE;
 }
 
-guint grab_keycode(GromitData *data, gint device_id, const char *key, int num_modifiers, XIGrabModifiers *key_modifiers)
+guint grab_keycode(GromitData *data, gint device_id, const char *key, int num_modifiers, XIGrabModifiers *key_modifiers, XIEventMask *mask)
 {
-  XIEventMask mask;
-  unsigned char bits[4] = {0, 0, 0, 0};
-  mask.mask = bits;
-  mask.mask_len = sizeof(bits);
-
-  XISetMask(bits, XI_KeyPress);
-  XISetMask(bits, XI_KeyRelease);
-
   if (data->debug)
     g_printerr("DEBUG: Grabbing key '%s' from keyboard '%d' .\n", key, device_id);
 
@@ -644,7 +638,7 @@ guint grab_keycode(GromitData *data, gint device_id, const char *key, int num_mo
                              GrabModeAsync,
                              GrabModeAsync,
                              True,
-                             &mask,
+                             mask,
                              num_modifiers,
                              key_modifiers);
 
