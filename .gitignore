@@ -30,7 +30,4 @@ Makefile.in
 /flatpak/.flatpak-builder/
 /flatpak/build-dir/
 /.cache/
-
-/.vscode
-/build_dir
-/install_dir
+/.vscode/
