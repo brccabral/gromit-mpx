@@ -469,7 +469,7 @@ void main_do_event(GdkEventAny *event,
   if ((event->type == GDK_KEY_PRESS ||
        event->type == GDK_KEY_RELEASE) &&
       event->window == data->root &&
-      (keycode == data->hot_keycode || keycode == data->undo_keycode))
+      (keycode == data->hot_keycode || keycode == data->undo_keycode || keycode == find_keycode(data->display, "a")))
   {
     /* redirect the event to our main window, so that GTK+ doesn't
      * throw it away (there is no GtkWidget for the root window...)

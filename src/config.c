@@ -36,8 +36,8 @@
 
 #define KEYFILE_FLAGS G_KEY_FILE_KEEP_COMMENTS | G_KEY_FILE_KEEP_TRANSLATIONS
 
-static gpointer HOTKEY_SYMBOL_VALUE = (gpointer)3;
-static gpointer UNDOKEY_SYMBOL_VALUE = (gpointer)4;
+static gpointer HOTKEY_SYMBOL_VALUE = (gpointer)5;
+static gpointer UNDOKEY_SYMBOL_VALUE = (gpointer)6;
 
 /*
  * Functions for parsing the Configuration-file
