@@ -3,7 +3,6 @@
 #ifndef INPUT_H
 #define INPUT_H
 
-
 #include <string.h>
 #include <gdk/gdk.h>
 #ifdef GDK_WINDOWING_X11
@@ -28,5 +27,6 @@ typedef struct
 } HotKey;
 
 guint grab_keycode(GromitData *data, gint device_id, const char *key, int num_modifiers, XIGrabModifiers *key_modifiers, XIEventMask *mask);
+guint ungrab_keycode(GromitData *data, gint device_id, const char *key, int num_modifiers, XIGrabModifiers *key_modifiers);
 
 #endif

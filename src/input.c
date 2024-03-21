@@ -294,14 +294,6 @@ void setup_input_devices(GromitData *data)
                          sizeof(modifiers) / sizeof(modifiers[0]), modifiers, &mask);
           }
 
-          XIGrabModifiers key_modifiers[] = {{0, 0}, {ShiftMask, 0}};
-          for (guchar k = 'a'; k <= 'z'; ++k)
-          {
-            gchar key[] = {k, '\0'};
-            grab_keycode(data, kbd_dev_id, key,
-                         sizeof(key_modifiers) / sizeof(key_modifiers[0]), key_modifiers, &mask);
-          }
-
           XSync(GDK_DISPLAY_XDISPLAY(data->display), False);
           if (gdk_x11_display_error_trap_pop(data->display))
           {
@@ -328,11 +320,6 @@ void setup_input_devices(GromitData *data)
       g_printerr("Enabled Device %d: \"%s\", (Type: %d)\n",
                  i++, gdk_device_get_name(device), gdk_device_get_source(device));
     }
-
-    // if (gdk_device_get_source(device) == GDK_SOURCE_KEYBOARD)
-    // {
-    //   devdata->keyboard = device;
-    // }
   }
 
   g_printerr("Now %d enabled devices.\n", g_hash_table_size(data->devdatatable));
@@ -363,6 +350,31 @@ void release_grab(GromitData *data,
     // force a redraw, otherwise input shape is not applied,
     // at least on newer GNOME versions
     gdk_window_invalidate_rect(gtk_widget_get_window(data->win), NULL, 0);
+  }
+  else
+  {
+    gint dev_id = gdk_x11_device_get_id(dev);
+    gint kbd_dev_id = -1;
+    XIDeviceInfo *devinfo;
+    int devicecount = 0;
+
+    devinfo = XIQueryDevice(GDK_DISPLAY_XDISPLAY(data->display),
+                            dev_id,
+                            &devicecount);
+    if (devicecount)
+      kbd_dev_id = devinfo->attachment;
+    XIFreeDeviceInfo(devinfo);
+
+    if (kbd_dev_id != -1)
+    {
+      XIGrabModifiers key_modifiers[] = {{0, 0}, {ShiftMask, 0}};
+      for (guchar k = 'a'; k <= 'z'; ++k)
+      {
+        gchar key[] = {k, '\0'};
+        ungrab_keycode(data, kbd_dev_id, key,
+                       sizeof(key_modifiers) / sizeof(key_modifiers[0]), key_modifiers);
+      }
+    }
   }
 
   if (!dev) /* this means release all grabs */
@@ -441,6 +453,39 @@ void acquire_grab(GromitData *data,
     // at least on newer GNOME versions
     gdk_window_invalidate_rect(gtk_widget_get_window(data->win), NULL, 0);
   }
+  else
+  {
+    gint dev_id = gdk_x11_device_get_id(dev);
+    gint kbd_dev_id = -1;
+    XIDeviceInfo *devinfo;
+    int devicecount = 0;
+
+    devinfo = XIQueryDevice(GDK_DISPLAY_XDISPLAY(data->display),
+                            dev_id,
+                            &devicecount);
+    if (devicecount)
+      kbd_dev_id = devinfo->attachment;
+    XIFreeDeviceInfo(devinfo);
+
+    if (kbd_dev_id != -1)
+    {
+      unsigned char bits[4] = {0, 0, 0, 0};
+      XISetMask(bits, XI_KeyPress);
+      XISetMask(bits, XI_KeyRelease);
+
+      XIEventMask mask;
+      mask.mask = bits;
+      mask.mask_len = sizeof(bits);
+
+      XIGrabModifiers key_modifiers[] = {{0, 0}, {ShiftMask, 0}};
+      for (guchar k = 'a'; k <= 'z'; ++k)
+      {
+        gchar key[] = {k, '\0'};
+        grab_keycode(data, kbd_dev_id, key,
+                     sizeof(key_modifiers) / sizeof(key_modifiers[0]), key_modifiers, &mask);
+      }
+    }
+  }
 
   if (!dev) /* this means grab all */
   {
@@ -475,21 +520,6 @@ void acquire_grab(GromitData *data,
                    gdk_device_get_name(devdata->device));
         continue;
       }
-
-      // if (gdk_device_grab(devdata->keyboard,
-      //                     gtk_widget_get_window(data->win),
-      //                     GDK_OWNERSHIP_NONE,
-      //                     TRUE,
-      //                     GROMIT_KEYBOARD_EVENTS,
-      //                     NULL,
-      //                     GDK_CURRENT_TIME) != GDK_GRAB_SUCCESS)
-      // {
-      //   /* this probably means the device table is outdated,
-      //  e.g. this device doesn't exist anymore */
-      //   g_printerr("Error grabbing Device '%s' while grabbing all, ignoring.\n",
-      //              gdk_device_get_name(devdata->keyboard));
-      //   continue;
-      // }
 
       devdata->is_grabbed = 1;
     }
@@ -528,22 +558,6 @@ void acquire_grab(GromitData *data,
       setup_input_devices(data);
       return;
     }
-
-    // if (gdk_device_grab(devdata->keyboard,
-    //                     gtk_widget_get_window(data->win),
-    //                     GDK_OWNERSHIP_NONE,
-    //                     TRUE,
-    //                     GROMIT_KEYBOARD_EVENTS,
-    //                     NULL,
-    //                     GDK_CURRENT_TIME) != GDK_GRAB_SUCCESS)
-    // {
-    //   /* this probably means the device table is outdated,
-    //  e.g. this device doesn't exist anymore */
-    //   g_printerr("Error grabbing device '%s' while grabbing all, ignoring.\n",
-    //              gdk_device_get_name(devdata->keyboard));
-    //   setup_input_devices(data);
-    //   return;
-    // }
 
     devdata->is_grabbed = 1;
 
@@ -648,6 +662,35 @@ guint grab_keycode(GromitData *data, gint device_id, const char *key, int num_mo
                                                GTK_MESSAGE_ERROR,
                                                GTK_BUTTONS_CLOSE,
                                                "Grabbing key %s from keyboard %d failed. The key function will not work unless configured to use another key.",
+                                               key,
+                                               device_id);
+    gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_widget_destroy(dialog);
+  }
+
+  return result;
+}
+
+guint ungrab_keycode(GromitData *data, gint device_id, const char *key, int num_modifiers, XIGrabModifiers *key_modifiers)
+{
+  if (data->debug)
+    g_printerr("DEBUG: Ungrabbing key '%s' from keyboard '%d' .\n", key, device_id);
+
+  int result = XIUngrabKeycode(GDK_DISPLAY_XDISPLAY(data->display),
+                               device_id,
+                               find_keycode(data->display, key),
+                               GDK_WINDOW_XID(data->root),
+                               num_modifiers,
+                               key_modifiers);
+
+  if (result != 0)
+  {
+    g_printerr("ERROR: Unrabbing key %s from keyboard device %d failed.\n", key, device_id);
+    GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW(data->win),
+                                               GTK_DIALOG_DESTROY_WITH_PARENT,
+                                               GTK_MESSAGE_ERROR,
+                                               GTK_BUTTONS_CLOSE,
+                                               "Unrabbing key %s from keyboard %d failed. The key function will not work unless configured to use another key.",
                                                key,
                                                device_id);
     gtk_dialog_run(GTK_DIALOG(dialog));
